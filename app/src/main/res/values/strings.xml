@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Parkado</string>
     <string name="ch_button">Start Chathead</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="leaving_text">O vai via?</string>
+    <string name="parking_text">Parcheggi?</string>
 </resources>

@@ -106,7 +106,7 @@ public class FloatingViewService extends Service {
         closeButtonCollapsed.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //close the service and remove the from from the window
+                //close the service and remove the view
                 stopSelf();
             }
         });
