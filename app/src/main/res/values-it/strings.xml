@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Parkado</string>
+    <string name="perm_chathead">Per usare l\'interfaccia a bolla, Parkado ha bisogno del permesso di disegnare sopra le altre applicazioni.</string>
+    <string name="perm_chathead_denied">Non avendo concesso il permesso Parkado non potrà mostrare l\'interfaccia a bolla.</string>
+    <string name="leaving_text">O vai via?</string>
+    <string name="parking_text">Parcheggi?</string>
+    <string name="ch_button">Interfaccia a bolla</string>
+</resources>

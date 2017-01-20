@@ -89,8 +89,7 @@ public class FloatingViewService extends Service {
                         int Ydiff = (int) (event.getRawY() - initialTouchY);
                         centerOfScreenByX = windowWidth / 2;
 
-                        //The check for Xdiff <10 && YDiff< 10 because sometime elements moves a little while clicking.
-                        //So that is click event.
+                        // If the movement is in a 10 by 10 box, it was a click.
                         if (Xdiff < 10 && Ydiff < 10) {
                             if (isViewCollapsed()) {
                                 //When user clicks on the image view of the collapsed layout,

@@ -1,7 +1,19 @@
 <resources>
     <string name="app_name">Parkado</string>
-    <string name="ch_button">Start Chathead</string>
     <string name="title_activity_maps">Map</string>
-    <string name="leaving_text">O vai via?</string>
-    <string name="parking_text">Parcheggi?</string>
+
+
+    <!-- Buttons -->
+    <string name="ch_button">Start Chathead</string>
+    <string name="parking_text">Parking?</string>
+    <string name="leaving_text">Or leaving?</string>
+
+
+    <!-- Dialogs -->
+    <string name="perm_chathead">To use the floating interface Parkado needs permission to overwrite screen content.</string>
+
+
+    <!-- Toasts -->
+    <string name="perm_chathead_denied">Having denied permission Parkado can not show the floating interface.</string>
+
 </resources>
