@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -24,8 +25,13 @@ import com.yogaub.giorgio.parkado.R;
 public class FloatingViewService extends Service {
 
     private WindowManager windowManager;
-    private View FloatingView;
-    private WindowManager.LayoutParams params;
+    private View floatingView;
+    private ImageView cancelView;
+    private WindowManager.LayoutParams floatingViewParams;
+    private WindowManager.LayoutParams cancelParams;
+    private int windowHeight;
+    private int windowWidth;
+    private int centerOfScreenByX;
 
 
     @Nullable
@@ -38,14 +44,19 @@ public class FloatingViewService extends Service {
     public void onCreate() {
         super.onCreate();
 
-        FloatingView = LayoutInflater.from(this).inflate(R.layout.floating_view, null);
+        // Initialization
+        floatingView = LayoutInflater.from(this).inflate(R.layout.floating_view, null);
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         //The root element of the collapsed view layout
-        final View collapsedView = FloatingView.findViewById(R.id.collapse_view);
+        final View collapsedView = floatingView.findViewById(R.id.collapse_view);
         //The root element of the expanded view layout
-        final View expandedView = FloatingView.findViewById(R.id.expanded_container);
+        final View expandedView = floatingView.findViewById(R.id.expanded_container);
+        DisplayMetrics displaymetrics = new DisplayMetrics();
+        windowManager.getDefaultDisplay().getMetrics(displaymetrics);
+        windowHeight = displaymetrics.heightPixels;
+        windowWidth = displaymetrics.widthPixels;
 
-        params = new WindowManager.LayoutParams(
+        floatingViewParams = new WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.TYPE_PHONE,
@@ -53,11 +64,11 @@ public class FloatingViewService extends Service {
             PixelFormat.TRANSLUCENT
         );
 
-        params.gravity = Gravity.TOP | Gravity.LEFT;
-        params.x = 0;
-        params.y = 100;
+        floatingViewParams.gravity = Gravity.TOP | Gravity.LEFT;
+        floatingViewParams.x = 0;
+        floatingViewParams.y = 100;
 
-        FloatingView.setOnTouchListener(new View.OnTouchListener(){
+        floatingView.setOnTouchListener(new View.OnTouchListener(){
             private int initialX;
             private int initialY;
             private float initialTouchX;
@@ -67,15 +78,16 @@ public class FloatingViewService extends Service {
             public boolean onTouch(View v, MotionEvent event) {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
-                        initialX = params.x;
-                        initialY = params.y;
+                        initialX = floatingViewParams.x;
+                        initialY = floatingViewParams.y;
                         initialTouchX = event.getRawX();
                         initialTouchY = event.getRawY();
+                        addCancelBinView();
                         return true;
                     case MotionEvent.ACTION_UP:
                         int Xdiff = (int) (event.getRawX() - initialTouchX);
                         int Ydiff = (int) (event.getRawY() - initialTouchY);
-
+                        centerOfScreenByX = windowWidth / 2;
 
                         //The check for Xdiff <10 && YDiff< 10 because sometime elements moves a little while clicking.
                         //So that is click event.
@@ -87,32 +99,37 @@ public class FloatingViewService extends Service {
                                 collapsedView.setVisibility(View.GONE);
                                 expandedView.setVisibility(View.VISIBLE);
                             }
+                        }else {
+                            // remove collapse view when it is in the cancel area
+                            if (insideCancelArea(v)) {
+                                stopSelf();
+                            }
                         }
+                        // always remove recycle bin ImageView when paper is dropped
+                        windowManager.removeView(cancelView);
+                        cancelView = null;
                         return true;
                     case MotionEvent.ACTION_MOVE:
-                        params.x = initialX + (int) (event.getRawX() - initialTouchX);
-                        params.y = initialY + (int) (event.getRawY() - initialTouchY);
-                        windowManager.updateViewLayout(FloatingView, params);
+                        floatingViewParams.x = initialX + (int) (event.getRawX() - initialTouchX);
+                        floatingViewParams.y = initialY + (int) (event.getRawY() - initialTouchY);
+                        windowManager.updateViewLayout(floatingView, floatingViewParams);
+                        if (insideCancelArea(v)){
+                            cancelView.setImageResource(R.drawable.close);
+                        }
+                        else {
+                            cancelView.setImageResource(R.drawable.cancel);
+                        }
                         return true;
                 }
                 return false;
             }
         });
 
-        windowManager.addView(FloatingView, params);
+        windowManager.addView(floatingView, floatingViewParams);
+
 
         //Set the close button
-        ImageView closeButtonCollapsed = (ImageView) FloatingView.findViewById(R.id.close_btn);
-        closeButtonCollapsed.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //close the service and remove the view
-                stopSelf();
-            }
-        });
-
-        //Set the close button
-        ImageView closeButton = (ImageView) FloatingView.findViewById(R.id.close_button);
+        ImageView closeButton = (ImageView) floatingView.findViewById(R.id.expanded_image_view);
         closeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -125,13 +142,41 @@ public class FloatingViewService extends Service {
     }
 
     private boolean isViewCollapsed() {
-        return FloatingView == null || FloatingView.findViewById(R.id.collapse_view).getVisibility() == View.VISIBLE;
+        return floatingView == null || floatingView.findViewById(R.id.collapse_view).getVisibility() == View.VISIBLE;
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (FloatingView != null) windowManager.removeView(FloatingView);
+        if (floatingView != null) windowManager.removeView(floatingView);
     }
+
+    private boolean insideCancelArea(View v){
+        return ((floatingViewParams.y > windowHeight - cancelView.getHeight() - v.getHeight()) &&
+                ((floatingViewParams.x > centerOfScreenByX - cancelView.getWidth() - v.getWidth() / 2) &&
+                        (floatingViewParams.x < centerOfScreenByX + cancelView.getWidth() / 2)));
+    }
+
+
+    private void addCancelBinView() {
+        cancelParams = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT);
+
+        cancelParams.gravity = Gravity.BOTTOM | Gravity.CENTER;
+
+        cancelView = new ImageView(this);
+        cancelView.setPadding(20, 20, 20, 50);
+        cancelView.setImageResource(R.drawable.cancel);
+
+        cancelParams.x = 0;
+        cancelParams.y = 0;
+
+        windowManager.addView(cancelView, cancelParams);
+    }
+
 
 }
