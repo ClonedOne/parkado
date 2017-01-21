@@ -8,9 +8,12 @@ public class Constants {
 
     // Numeric constants
     public static final int CHATHEAD_PERMISSION = 100;
+    public static final int LOCATION_PERMISSION = 123;
+
     public static final int MODIFY_SYS_OVERLAY = 200;
 
     // Debug strings
     public static final String DBG_CHATHEAD = "Chathead Debug:";
+    public static final String DBG_LOC = "Location Debug:";
 
 }

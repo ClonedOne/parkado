@@ -1,5 +1,3 @@
-
-/* Code to be reused elsewhere
 if (ContextCompat.checkSelfPermission(this, Manifest.permission.SYSTEM_ALERT_WINDOW) != PackageManager.PERMISSION_GRANTED) {
     Log.d(Constants.DBG_CHATHEAD, "Permission is not granted");
 
@@ -15,10 +13,9 @@ if (ContextCompat.checkSelfPermission(this, Manifest.permission.SYSTEM_ALERT_WIN
         ActivityCompat.requestPermissions(MainActivity.this, new String[] {Manifest.permission.SYSTEM_ALERT_WINDOW}, 123);
     }
 }
-*/
 
 
-/* Code to be reused elsewhere
+
 @Override
 public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
     switch (requestCode) {
@@ -37,4 +34,13 @@ public void onRequestPermissionsResult(int requestCode, @NonNull String[] permis
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 }
-*/
+
+, new DialogInterface.OnClickListener(){
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    Toast denied_t = Toast.makeText(MainActivity.this, getString(R.string.perm_chathead_denied), Toast.LENGTH_LONG);
+                    denied_t.show();
+                    overlay = false;
+                }
+            }
+

@@ -11,9 +11,11 @@
 
     <!-- Dialogs -->
     <string name="perm_chathead">To use the floating interface Parkado needs permission to overwrite screen content.</string>
+    <string name="perm_location">Parkado needs to access the user location.</string>
 
 
     <!-- Toasts -->
     <string name="perm_chathead_denied">Having denied permission Parkado can not show the floating interface.</string>
+    <string name="perm_location_denied">Having denied permission Parkado can not acquire user location.</string>
 
 </resources>
