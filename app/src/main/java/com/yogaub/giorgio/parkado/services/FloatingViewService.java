@@ -1,11 +1,19 @@
 package com.yogaub.giorgio.parkado.services;
 
+import android.Manifest;
 import android.app.Service;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.PixelFormat;
+import android.location.Location;
+import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -13,7 +21,11 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 import com.yogaub.giorgio.parkado.R;
+import com.yogaub.giorgio.parkado.utilties.Constants;
 
 
 /**
@@ -22,7 +34,7 @@ import com.yogaub.giorgio.parkado.R;
  * This class is a service responsible for the creation and management of the Chat Head.
  */
 
-public class FloatingViewService extends Service {
+public class FloatingViewService extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private WindowManager windowManager;
     private View floatingView;
@@ -33,6 +45,9 @@ public class FloatingViewService extends Service {
     private int windowWidth;
     private int centerOfScreenByX;
 
+    private GoogleApiClient mGoogleApiClient;
+    Location mLastLocation;
+
 
     @Nullable
     @Override
@@ -40,6 +55,10 @@ public class FloatingViewService extends Service {
         return null;
     }
 
+
+    /*
+    Interface generation
+     */
     @Override
     public void onCreate() {
         super.onCreate();
@@ -57,18 +76,47 @@ public class FloatingViewService extends Service {
         windowWidth = displaymetrics.widthPixels;
 
         floatingViewParams = new WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.TYPE_PHONE,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-            PixelFormat.TRANSLUCENT
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT
         );
 
-        floatingViewParams.gravity = Gravity.TOP | Gravity.LEFT;
+        floatingViewParams.gravity = Gravity.TOP | Gravity.START;
         floatingViewParams.x = 0;
         floatingViewParams.y = 100;
 
-        floatingView.setOnTouchListener(new View.OnTouchListener(){
+        setFloatingViewListener(collapsedView, expandedView);
+
+        windowManager.addView(floatingView, floatingViewParams);
+
+        //Set the close button
+        ImageView closeButton = (ImageView) floatingView.findViewById(R.id.expanded_image_view);
+        closeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                collapsedView.setVisibility(View.VISIBLE);
+                expandedView.setVisibility(View.GONE);
+            }
+        });
+
+
+        ImageView parkedButton = (ImageView) floatingView.findViewById(R.id.park_button);
+        parkedButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                parked();
+            }
+        });
+
+        buildGoogleApiClient();
+
+    }
+
+
+    private void setFloatingViewListener(final View collapsedView, final View expandedView) {
+        floatingView.setOnTouchListener(new View.OnTouchListener() {
             private int initialX;
             private int initialY;
             private float initialTouchX;
@@ -98,7 +146,7 @@ public class FloatingViewService extends Service {
                                 collapsedView.setVisibility(View.GONE);
                                 expandedView.setVisibility(View.VISIBLE);
                             }
-                        }else {
+                        } else {
                             // remove collapse view when it is in the cancel area
                             if (insideCancelArea(v)) {
                                 stopSelf();
@@ -112,10 +160,9 @@ public class FloatingViewService extends Service {
                         floatingViewParams.x = initialX + (int) (event.getRawX() - initialTouchX);
                         floatingViewParams.y = initialY + (int) (event.getRawY() - initialTouchY);
                         windowManager.updateViewLayout(floatingView, floatingViewParams);
-                        if (insideCancelArea(v)){
+                        if (insideCancelArea(v)) {
                             cancelView.setImageResource(R.drawable.close);
-                        }
-                        else {
+                        } else {
                             cancelView.setImageResource(R.drawable.cancel);
                         }
                         return true;
@@ -123,21 +170,6 @@ public class FloatingViewService extends Service {
                 return false;
             }
         });
-
-        windowManager.addView(floatingView, floatingViewParams);
-
-
-        //Set the close button
-        ImageView closeButton = (ImageView) floatingView.findViewById(R.id.expanded_image_view);
-        closeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                collapsedView.setVisibility(View.VISIBLE);
-                expandedView.setVisibility(View.GONE);
-            }
-        });
-
-
     }
 
     private boolean isViewCollapsed() {
@@ -150,12 +182,11 @@ public class FloatingViewService extends Service {
         if (floatingView != null) windowManager.removeView(floatingView);
     }
 
-    private boolean insideCancelArea(View v){
+    private boolean insideCancelArea(View v) {
         return ((floatingViewParams.y > windowHeight - cancelView.getHeight() - v.getHeight()) &&
                 ((floatingViewParams.x > centerOfScreenByX - cancelView.getWidth() - v.getWidth() / 2) &&
                         (floatingViewParams.x < centerOfScreenByX + cancelView.getWidth() / 2)));
     }
-
 
     private void addCancelBinView() {
         cancelParams = new WindowManager.LayoutParams(
@@ -177,5 +208,71 @@ public class FloatingViewService extends Service {
         windowManager.addView(cancelView, cancelParams);
     }
 
+
+    /*
+    Button listeners
+     */
+    private void parked() {
+        Log.d(Constants.DBG_LOC, "Clicked on parked button");
+        if (mGoogleApiClient == null) {
+            buildGoogleApiClient();
+        }
+        if (mGoogleApiClient.isConnected()){
+            get_location();
+        }else {
+            Log.d(Constants.DBG_LOC, "Client is not connected");
+        }
+
+    }
+
+
+    /*
+    Location related methods
+     */
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        Log.d(Constants.DBG_LOC, "Connection established");
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.d(Constants.DBG_LOC, "Connection suspended");
+        Snackbar snackbar = Snackbar.make(floatingView, getString(R.string.error_googleapi), Snackbar.LENGTH_LONG);
+        snackbar.show();
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.d(Constants.DBG_LOC, "Connection Failed");
+        Snackbar snackbar = Snackbar.make(floatingView, getString(R.string.error_googleapi), Snackbar.LENGTH_LONG);
+        snackbar.show();
+    }
+
+    private void buildGoogleApiClient() {
+        Log.d(Constants.DBG_LOC, "Building api client");
+        // Create an instance of GoogleAPIClient.
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+        mGoogleApiClient.connect();
+    }
+
+    private void get_location() {
+        Log.d(Constants.DBG_LOC, "Attempting to get location");
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Snackbar snackbar = Snackbar.make(floatingView, getString(R.string.perm_location_denied), Snackbar.LENGTH_LONG);
+            snackbar.show();
+            return;
+        }
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
+        if (mLastLocation != null) {
+            Log.d(Constants.DBG_LOC, String.valueOf(mLastLocation.getLatitude()));
+            Log.d(Constants.DBG_LOC, String.valueOf(mLastLocation.getLongitude()));
+        }
+
+    }
 
 }
