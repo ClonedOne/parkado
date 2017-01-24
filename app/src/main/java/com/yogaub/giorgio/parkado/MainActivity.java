@@ -11,7 +11,6 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,6 +20,7 @@ import android.Manifest;
 
 import com.yogaub.giorgio.parkado.services.FloatingViewService;
 import com.yogaub.giorgio.parkado.utilties.Constants;
+import com.yogaub.giorgio.parkado.utilties.Utils;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d(Constants.DBG_LOC, "Permission is not granted");
 
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.SYSTEM_ALERT_WINDOW)) {
-                showMessageOKCancel(getString(R.string.perm_location), new DialogInterface.OnClickListener() {
+                Utils.showMessageOKCancel(this, getString(R.string.perm_location), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         ActivityCompat.requestPermissions(MainActivity.this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, Constants.LOCATION_PERMISSION);
@@ -88,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
             startService(new Intent(this, FloatingViewService.class));
         } else {
             Log.d(Constants.DBG_CHATHEAD, "Permission is not granted");
-            showMessageOKCancel(getString(R.string.perm_chathead), new DialogInterface.OnClickListener() {
+            Utils.showMessageOKCancel(this, getString(R.string.perm_chathead), new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
@@ -122,12 +122,6 @@ public class MainActivity extends AppCompatActivity {
     Utility methods
      */
 
-    private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
-        new AlertDialog.Builder(MainActivity.this)
-                .setMessage(message)
-                .setPositiveButton("Ok", okListener)
-                .create()
-                .show();
-    }
+
 
 }

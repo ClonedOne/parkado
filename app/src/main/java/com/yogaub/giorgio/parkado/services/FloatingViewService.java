@@ -5,6 +5,8 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.PixelFormat;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -23,9 +25,22 @@ import android.widget.ImageView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.yogaub.giorgio.parkado.PermissionRequestActivity;
 import com.yogaub.giorgio.parkado.R;
 import com.yogaub.giorgio.parkado.utilties.Constants;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
 
 
 /**
@@ -34,7 +49,7 @@ import com.yogaub.giorgio.parkado.utilties.Constants;
  * This class is a service responsible for the creation and management of the Chat Head.
  */
 
-public class FloatingViewService extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class FloatingViewService extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     private WindowManager windowManager;
     private View floatingView;
@@ -46,7 +61,8 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
     private int centerOfScreenByX;
 
     private GoogleApiClient mGoogleApiClient;
-    Location mLastLocation;
+    private Geocoder geocoder;
+    private LocationRequest mLocationRequest;
 
 
     @Nullable
@@ -111,6 +127,7 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
         });
 
         buildGoogleApiClient();
+        geocoder = new Geocoder(this, Locale.getDefault());
 
     }
 
@@ -217,11 +234,9 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
         if (mGoogleApiClient == null) {
             buildGoogleApiClient();
         }
-        if (mGoogleApiClient.isConnected()){
-            get_location();
-        }else {
-            Log.d(Constants.DBG_LOC, "Client is not connected");
-        }
+        mGoogleApiClient.connect();
+        get_location();
+
 
     }
 
@@ -256,23 +271,56 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
-        mGoogleApiClient.connect();
     }
 
     private void get_location() {
         Log.d(Constants.DBG_LOC, "Attempting to get location");
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Snackbar snackbar = Snackbar.make(floatingView, getString(R.string.perm_location_denied), Snackbar.LENGTH_LONG);
-            snackbar.show();
-            return;
-        }
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-                mGoogleApiClient);
-        if (mLastLocation != null) {
-            Log.d(Constants.DBG_LOC, String.valueOf(mLastLocation.getLatitude()));
-            Log.d(Constants.DBG_LOC, String.valueOf(mLastLocation.getLongitude()));
-        }
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest(mLocationRequest);
+        final PendingResult<LocationSettingsResult> result = LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient, builder.build());
+
+        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
+            @Override
+            public void onResult(@NonNull LocationSettingsResult locationSettingsResult) {
+                final Status status = locationSettingsResult.getStatus();
+                switch (status.getStatusCode()) {
+                    case LocationSettingsStatusCodes.SUCCESS:
+                        if (ActivityCompat.checkSelfPermission(FloatingViewService.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                            Intent intent = new Intent(FloatingViewService.this, PermissionRequestActivity.class);
+                            startActivity(intent);
+                            return;
+                        }
+                        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, FloatingViewService.this);
+
+                        break;
+                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                        Log.d(Constants.DBG_LOC, "Need to change settings");
+                        break;
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                        Log.d(Constants.DBG_LOC, "Impossible to change settings");
+                        break;
+
+                }
+            }
+        });
 
     }
 
+
+    @Override
+    public void onLocationChanged(Location location) {
+        if (location != null) {
+            Log.d(Constants.DBG_LOC, String.valueOf(location.getLatitude()));
+            Log.d(Constants.DBG_LOC, String.valueOf(location.getLongitude()));
+            try {
+                List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+                Log.d(Constants.DBG_LOC, "Your car is at: " + addresses.get(0).getAddressLine(0) + ", " + addresses.get(0).getLocality());
+            }
+            catch (IOException e){
+                Snackbar snackbar = Snackbar.make(floatingView, getString(R.string.perm_location_denied), Snackbar.LENGTH_LONG);
+                snackbar.show();
+            }
+        }
+    }
 }

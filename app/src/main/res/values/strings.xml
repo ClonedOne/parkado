@@ -18,5 +18,6 @@
     <string name="perm_chathead_denied">Having denied permission Parkado can not show the floating interface.</string>
     <string name="perm_location_denied">Having denied permission Parkado can not acquire user location.</string>
     <string name="error_googleapi">Sorry there was an error with Google services. Please restart Parkado.</string>
+    <string name="error_geocode">Sorry there was an error with retrieving your address.</string>
 
 </resources>
