@@ -4,6 +4,12 @@
     <string name="perm_chathead">Per usare l\'interfaccia a bolla, Parkado ha bisogno del permesso di disegnare sopra le altre applicazioni.</string>
     <string name="perm_chathead_denied">Non avendo concesso il permesso Parkado non potrà mostrare l\'interfaccia a bolla.</string>
     <string name="leaving_text">O vai via?</string>
-    <string name="parking_text">Parcheggi?</string>
+    <string name="parked_text">Parcheggiato?</string>
     <string name="ch_button">Interfaccia a bolla</string>
+    <string name="looking_for_text">Cerchi posto?</string>
+    <string name="perm_location">Parkado ha bisogno di accedere alla posizione dell\'utente.</string>
+    <string name="perm_location_denied">Avendo negato l\'accesso alla posizione Parkado non può funzionare correttamente.</string>
+    <string name="title_activity_maps">Mappa</string>
+    <string name="error_geocode">Spiacente si è verificato un errore nella acquisizione dell\'indirizzo.</string>
+    <string name="error_googleapi">Spieacente si è verificato un errore nel servizio di Google Play.</string>
 </resources>

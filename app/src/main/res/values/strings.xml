@@ -5,7 +5,8 @@
 
     <!-- Buttons -->
     <string name="ch_button">Start Chathead</string>
-    <string name="parking_text">Parking?</string>
+    <string name="looking_for_text">Looking for a spot?</string>
+    <string name="parked_text">Parked?</string>
     <string name="leaving_text">Or leaving?</string>
 
 

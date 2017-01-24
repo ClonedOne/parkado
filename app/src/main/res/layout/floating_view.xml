@@ -28,6 +28,7 @@
                 android:layout_width="60dp"
                 android:layout_height="60dp"
                 android:layout_marginTop="8dp"
+                android:padding="4dp"
                 android:src="@drawable/sings_hd"
                 android:transitionName="profile"
                 tools:ignore="ContentDescription"/>
