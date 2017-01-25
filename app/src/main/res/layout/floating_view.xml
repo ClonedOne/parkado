@@ -1,66 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="wrap_content"
-    android:animateLayoutChanges="true"
     android:layout_height="wrap_content">
 
-    <!--Root container-->
+    <!--View while view is collapsed-->
     <RelativeLayout
-        android:id="@+id/root_container"
+        android:id="@+id/collapsed_container"
         android:layout_width="wrap_content"
+        android:visibility="visible"
         android:layout_height="wrap_content"
-        tools:ignore="UselessParent">
+        android:orientation="vertical">
 
-        <!--View while view is collapsed-->
-        <RelativeLayout
-            android:id="@+id/collapse_view"
-            android:layout_width="wrap_content"
-            android:visibility="visible"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <!--Icon of floating widget -->
-            <de.hdodenhof.circleimageview.CircleImageView
-                android:id="@+id/collapsed_image_view"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_marginTop="8dp"
-                android:padding="4dp"
-                android:src="@drawable/sings_hd"
-                android:transitionName="profile"
-                tools:ignore="ContentDescription"/>
-
-        </RelativeLayout>
-
-
-        <!--View while view is expanded-->
-        <LinearLayout
-            android:id="@+id/expanded_container"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:orientation="vertical"
-            android:background="@android:color/transparent"
-            android:padding="8dp">
-
-            <!--Icon of floating widget -->
-            <de.hdodenhof.circleimageview.CircleImageView
-                android:id="@+id/expanded_image_view"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:padding="4dp"
-                android:layout_gravity="center"
-                android:src="@drawable/sings_hd"/>
-
-            <!--Dummy placeholder -->
-            <include layout="@layout/parking_card"/>
-
-        </LinearLayout>
-
+        <!--Icon of floating widget -->
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/collapsed_image_view"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginTop="8dp"
+            android:padding="4dp"
+            android:src="@drawable/sings_hd"
+            android:transitionName="profile"/>
 
     </RelativeLayout>
+
+
+    <!--View while view is expanded-->
+    <LinearLayout
+        android:id="@+id/expanded_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:orientation="vertical"
+        android:background="@android:color/transparent"
+        android:padding="8dp">
+
+        <!--Icon of floating widget -->
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/expanded_image_view"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:padding="4dp"
+            android:layout_gravity="center"
+            android:transitionName="profile"
+            android:src="@drawable/sings_hd"/>
+
+        <!--Dummy placeholder -->
+        <include layout="@layout/parking_card"/>
+
+    </LinearLayout>
 
 </FrameLayout>

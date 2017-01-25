@@ -46,13 +46,17 @@ import java.util.Locale;
 /**
  * Created by Giorgio on yogaub.
  *
- * This class is a service responsible for the creation and management of the Chat Head.
+ * This class is a service responsible for the creation and management of the Floating View.
  */
 
 public class FloatingViewService extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     private WindowManager windowManager;
     private View floatingView;
+    private View collapsedView;
+    private View expandedView;
+    private ImageView collapseButton;
+    private ImageView parkedButton;
     private ImageView cancelView;
     private WindowManager.LayoutParams floatingViewParams;
     private WindowManager.LayoutParams cancelParams;
@@ -75,17 +79,19 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
     /*
     Interface generation
      */
+
     @Override
     public void onCreate() {
         super.onCreate();
-
         // Initialization
         floatingView = LayoutInflater.from(this).inflate(R.layout.floating_view, null);
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-        //The root element of the collapsed view layout
-        final View collapsedView = floatingView.findViewById(R.id.collapse_view);
-        //The root element of the expanded view layout
-        final View expandedView = floatingView.findViewById(R.id.expanded_container);
+
+        collapsedView = floatingView.findViewById(R.id.collapsed_container);
+        expandedView = floatingView.findViewById(R.id.expanded_container);
+        collapseButton = (ImageView) floatingView.findViewById(R.id.expanded_image_view);
+        parkedButton = (ImageView) floatingView.findViewById(R.id.park_button);
+
         DisplayMetrics displaymetrics = new DisplayMetrics();
         windowManager.getDefaultDisplay().getMetrics(displaymetrics);
         windowHeight = displaymetrics.heightPixels;
@@ -98,18 +104,19 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT
         );
-
         floatingViewParams.gravity = Gravity.TOP | Gravity.START;
         floatingViewParams.x = 0;
         floatingViewParams.y = 100;
-
-        setFloatingViewListener(collapsedView, expandedView);
-
         windowManager.addView(floatingView, floatingViewParams);
 
+        setFloatingViewListener(floatingView, Constants.FLTNG_VW);
+        setFloatingViewListener(collapseButton, Constants.CLLPS_BTN);
+        setFloatingViewListener(parkedButton, Constants.PRKD_BTN);
+
+
         //Set the close button
-        ImageView closeButton = (ImageView) floatingView.findViewById(R.id.expanded_image_view);
-        closeButton.setOnClickListener(new View.OnClickListener() {
+
+        collapseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 collapsedView.setVisibility(View.VISIBLE);
@@ -118,7 +125,6 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
         });
 
 
-        ImageView parkedButton = (ImageView) floatingView.findViewById(R.id.park_button);
         parkedButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -131,9 +137,8 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
 
     }
 
-
-    private void setFloatingViewListener(final View collapsedView, final View expandedView) {
-        floatingView.setOnTouchListener(new View.OnTouchListener() {
+    private void setFloatingViewListener(View view, final int view_elem) {
+        view.setOnTouchListener(new View.OnTouchListener() {
             private int initialX;
             private int initialY;
             private float initialTouchX;
@@ -156,16 +161,26 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
 
                         // If the movement is in a 10 by 10 box, it was a click.
                         if (Xdiff < 10 && Ydiff < 10) {
-                            if (isViewCollapsed()) {
-                                //When user clicks on the image view of the collapsed layout,
-                                //visibility of the collapsed layout will be changed to "View.GONE"
-                                //and expanded view will become visible.
-                                collapsedView.setVisibility(View.GONE);
-                                expandedView.setVisibility(View.VISIBLE);
+                            switch (view_elem){
+                                case Constants.FLTNG_VW:
+                                    expand();
+                                    break;
+                                case Constants.LKNFR_BTN:
+                                    break;
+                                case Constants.PRKD_BTN:
+                                    parked();
+                                    break;
+                                case Constants.LVNG_BTN:
+                                    break;
+                                case Constants.CLLPS_BTN:
+                                    collapse();
+                                    break;
+                                default:
+                                    return false;
                             }
                         } else {
                             // remove collapse view when it is in the cancel area
-                            if (insideCancelArea(v)) {
+                            if (insideCancelArea()) {
                                 stopSelf();
                             }
                         }
@@ -177,7 +192,7 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
                         floatingViewParams.x = initialX + (int) (event.getRawX() - initialTouchX);
                         floatingViewParams.y = initialY + (int) (event.getRawY() - initialTouchY);
                         windowManager.updateViewLayout(floatingView, floatingViewParams);
-                        if (insideCancelArea(v)) {
+                        if (insideCancelArea()) {
                             cancelView.setImageResource(R.drawable.close);
                         } else {
                             cancelView.setImageResource(R.drawable.cancel);
@@ -190,7 +205,7 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
     }
 
     private boolean isViewCollapsed() {
-        return floatingView == null || floatingView.findViewById(R.id.collapse_view).getVisibility() == View.VISIBLE;
+        return floatingView == null || floatingView.findViewById(R.id.collapsed_container).getVisibility() == View.VISIBLE;
     }
 
     @Override
@@ -199,9 +214,9 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
         if (floatingView != null) windowManager.removeView(floatingView);
     }
 
-    private boolean insideCancelArea(View v) {
-        return ((floatingViewParams.y > windowHeight - cancelView.getHeight() - v.getHeight()) &&
-                ((floatingViewParams.x > centerOfScreenByX - cancelView.getWidth() - v.getWidth() / 2) &&
+    private boolean insideCancelArea() {
+        return ((floatingViewParams.y > windowHeight - cancelView.getHeight() - floatingView.getHeight()) &&
+                ((floatingViewParams.x > centerOfScreenByX - cancelView.getWidth() - floatingView.getWidth() / 2) &&
                         (floatingViewParams.x < centerOfScreenByX + cancelView.getWidth() / 2)));
     }
 
@@ -229,6 +244,17 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
     /*
     Button listeners
      */
+
+    private void expand(){
+        collapsedView.setVisibility(View.GONE);
+        expandedView.setVisibility(View.VISIBLE);
+    }
+
+    private void collapse(){
+        collapsedView.setVisibility(View.VISIBLE);
+        expandedView.setVisibility(View.GONE);
+    }
+
     private void parked() {
         Log.d(Constants.DBG_LOC, "Clicked on parked button");
         if (mGoogleApiClient == null) {
@@ -244,6 +270,7 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
     /*
     Location related methods
      */
+
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         Log.d(Constants.DBG_LOC, "Connection established");
@@ -287,18 +314,22 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
                 switch (status.getStatusCode()) {
                     case LocationSettingsStatusCodes.SUCCESS:
                         if (ActivityCompat.checkSelfPermission(FloatingViewService.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                            Log.d(Constants.DBG_LOC, "Requesting location permission again");
                             Intent intent = new Intent(FloatingViewService.this, PermissionRequestActivity.class);
+                            intent.putExtra(Constants.PERM_REQ, Constants.LOCATION_PERMISSION);
                             startActivity(intent);
                             return;
                         }
                         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, FloatingViewService.this);
-
                         break;
                     case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                        Log.d(Constants.DBG_LOC, "Need to change settings");
+                        Log.d(Constants.DBG_LOC, "Need to change GPS settings");
+                        Intent intent = new Intent(FloatingViewService.this, PermissionRequestActivity.class);
+                        intent.putExtra(Constants.PERM_REQ, Constants.MODIFY_GPS_STATUS);
+                        startActivity(intent);
                         break;
                     case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                        Log.d(Constants.DBG_LOC, "Impossible to change settings");
+                        Log.d(Constants.DBG_LOC, "Impossible to change GPS settings");
                         break;
 
                 }
@@ -306,7 +337,6 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
         });
 
     }
-
 
     @Override
     public void onLocationChanged(Location location) {
@@ -323,4 +353,5 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
             }
         }
     }
+
 }
