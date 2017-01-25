@@ -137,6 +137,42 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
 
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (floatingView != null) windowManager.removeView(floatingView);
+    }
+
+    private boolean insideCancelArea() {
+        return ((floatingViewParams.y > windowHeight - cancelView.getHeight() - floatingView.getHeight()) &&
+                ((floatingViewParams.x > centerOfScreenByX - cancelView.getWidth() - floatingView.getWidth() / 2) &&
+                        (floatingViewParams.x < centerOfScreenByX + cancelView.getWidth() / 2)));
+    }
+
+    private void addCancelBinView() {
+        cancelParams = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT);
+
+        cancelParams.gravity = Gravity.BOTTOM | Gravity.CENTER;
+
+        cancelView = new ImageView(this);
+        cancelView.setPadding(20, 20, 20, 50);
+        cancelView.setImageResource(R.drawable.cancel);
+
+        cancelParams.x = 0;
+        cancelParams.y = 0;
+
+        windowManager.addView(cancelView, cancelParams);
+    }
+
+    /*
+    Button listeners
+     */
+
     private void setFloatingViewListener(View view, final int view_elem) {
         view.setOnTouchListener(new View.OnTouchListener() {
             private int initialX;
@@ -203,47 +239,6 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
             }
         });
     }
-
-    private boolean isViewCollapsed() {
-        return floatingView == null || floatingView.findViewById(R.id.collapsed_container).getVisibility() == View.VISIBLE;
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (floatingView != null) windowManager.removeView(floatingView);
-    }
-
-    private boolean insideCancelArea() {
-        return ((floatingViewParams.y > windowHeight - cancelView.getHeight() - floatingView.getHeight()) &&
-                ((floatingViewParams.x > centerOfScreenByX - cancelView.getWidth() - floatingView.getWidth() / 2) &&
-                        (floatingViewParams.x < centerOfScreenByX + cancelView.getWidth() / 2)));
-    }
-
-    private void addCancelBinView() {
-        cancelParams = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                PixelFormat.TRANSLUCENT);
-
-        cancelParams.gravity = Gravity.BOTTOM | Gravity.CENTER;
-
-        cancelView = new ImageView(this);
-        cancelView.setPadding(20, 20, 20, 50);
-        cancelView.setImageResource(R.drawable.cancel);
-
-        cancelParams.x = 0;
-        cancelParams.y = 0;
-
-        windowManager.addView(cancelView, cancelParams);
-    }
-
-
-    /*
-    Button listeners
-     */
 
     private void expand(){
         collapsedView.setVisibility(View.GONE);

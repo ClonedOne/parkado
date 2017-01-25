@@ -13,4 +13,5 @@
     <string name="error_geocode">Spiacente si è verificato un errore nella acquisizione dell\'indirizzo.</string>
     <string name="error_googleapi">Spieacente si è verificato un errore nel servizio di Google Play.</string>
     <string name="enable_gps">Per favore abilita il GPS e prova di nuovo.</string>
+    <string name="error_splash_screen">Oops! Sembrerebbe ci sia un problemino..</string>
 </resources>

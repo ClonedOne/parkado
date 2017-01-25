@@ -21,5 +21,6 @@
     <string name="error_googleapi">Sorry there was an error with Google services. Please restart Parkado.</string>
     <string name="error_geocode">Sorry there was an error with retrieving your address.</string>
     <string name="enable_gps">Please enable GPS and try again.</string>
+    <string name="error_splash_screen">Oops! Looks like there is little problem..</string>
 
 </resources>
