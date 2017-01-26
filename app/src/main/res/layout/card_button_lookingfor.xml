@@ -9,11 +9,11 @@
     card_view:cardElevation="0dp">
 
     <ImageView
-        android:id="@+id/park_button"
+        android:id="@+id/looking_for_button"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
-        android:src="@drawable/park_lot"/>
+        android:src="@drawable/parking_spot"/>
 
     <!-- Used for the ripple effect on touch -->
     <LinearLayout
@@ -33,12 +33,12 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:gravity="center_horizontal"
-            android:paddingStart="4dp"
-            android:paddingEnd="4dp"
+            android:paddingStart="2dp"
+            android:paddingEnd="2dp"
             android:textSize="14sp"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:textColor="@android:color/white"
-            android:text="@string/parked_text"/>
+            android:text="@string/looking_for_text"/>
 
     </LinearLayout>
 
