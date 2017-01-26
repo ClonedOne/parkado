@@ -109,28 +109,7 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
         floatingViewParams.y = 100;
         windowManager.addView(floatingView, floatingViewParams);
 
-        setFloatingViewListener(floatingView, Constants.FLTNG_VW);
-        setFloatingViewListener(collapseButton, Constants.CLLPS_BTN);
-        setFloatingViewListener(parkedButton, Constants.PRKD_BTN);
-
-
-        //Set the close button
-
-        collapseButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                collapsedView.setVisibility(View.VISIBLE);
-                expandedView.setVisibility(View.GONE);
-            }
-        });
-
-
-        parkedButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                parked();
-            }
-        });
+        setButtonListeners();
 
         buildGoogleApiClient();
         geocoder = new Geocoder(this, Locale.getDefault());
@@ -169,9 +148,16 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
         windowManager.addView(cancelView, cancelParams);
     }
 
+
     /*
     Button listeners
      */
+
+    private void setButtonListeners(){
+        setFloatingViewListener(floatingView, Constants.FLTNG_VW);
+        setFloatingViewListener(collapseButton, Constants.CLLPS_BTN);
+        setFloatingViewListener(parkedButton, Constants.PRKD_BTN);
+    }
 
     private void setFloatingViewListener(View view, final int view_elem) {
         view.setOnTouchListener(new View.OnTouchListener() {

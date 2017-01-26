@@ -42,7 +42,10 @@
         <activity
             android:name=".MapsActivity"
             android:label="@string/title_activity_maps" />
-        <activity android:name=".PermissionRequestActivity"></activity>
+
+        <activity
+            android:name=".PermissionRequestActivity"
+            android:noHistory="true"/>
     </application>
 
 </manifest>

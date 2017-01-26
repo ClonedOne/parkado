@@ -44,3 +44,89 @@ public void onRequestPermissionsResult(int requestCode, @NonNull String[] permis
                 }
             }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/looking_for_text"
+                android:layout_gravity="center"
+                android:textColor="@color/colorPrimary"
+                android:textSize="14sp"/>
+            <ImageView
+                android:id="@+id/looking_for_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/parking_sign"
+                android:padding="5dp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/parked_text"
+                android:layout_gravity="center"
+                android:textColor="@color/colorPrimary"
+                android:textSize="14sp"/>
+            <ImageView
+                android:id="@+id/park_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/parked"
+                android:padding="5dp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/leaving_text"
+                android:layout_gravity="center"
+                android:textColor="@color/colorPrimary"
+                android:textSize="14sp"/>
+            <ImageView
+                android:id="@+id/leave_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/automobile"
+                android:padding="5dp"/>
+        </LinearLayout>
+
+
+
+
+
+
+
