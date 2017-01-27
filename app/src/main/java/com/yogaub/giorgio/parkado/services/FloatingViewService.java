@@ -3,12 +3,14 @@ package com.yogaub.giorgio.parkado.services;
 import android.Manifest;
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.PixelFormat;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -34,6 +36,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.yogaub.giorgio.parkado.MapsActivity;
 import com.yogaub.giorgio.parkado.PermissionRequestActivity;
 import com.yogaub.giorgio.parkado.R;
 import com.yogaub.giorgio.parkado.utilties.Constants;
@@ -57,6 +60,9 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
     private View expandedView;
     private ImageView collapseButton;
     private ImageView parkedButton;
+    private ImageView whereButton;
+    private ImageView lookingforButton;
+    private ImageView leavingButton;
     private ImageView cancelView;
     private WindowManager.LayoutParams floatingViewParams;
     private WindowManager.LayoutParams cancelParams;
@@ -67,6 +73,12 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
     private GoogleApiClient mGoogleApiClient;
     private Geocoder geocoder;
     private LocationRequest mLocationRequest;
+
+    private boolean fiveLocations = false;
+    private Runnable task;
+    private int locationArraySize = 15;
+    private Location [] locationArray = new Location[locationArraySize];
+    private int locationCounter;
 
 
     @Nullable
@@ -91,6 +103,9 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
         expandedView = floatingView.findViewById(R.id.expanded_container);
         collapseButton = (ImageView) floatingView.findViewById(R.id.expanded_image_view);
         parkedButton = (ImageView) floatingView.findViewById(R.id.park_button);
+        whereButton = (ImageView) floatingView.findViewById(R.id.where_button);
+        lookingforButton = (ImageView) floatingView.findViewById(R.id.looking_for_button);
+        leavingButton = (ImageView) floatingView.findViewById(R.id.leaving_button);
 
         DisplayMetrics displaymetrics = new DisplayMetrics();
         windowManager.getDefaultDisplay().getMetrics(displaymetrics);
@@ -157,6 +172,7 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
         setFloatingViewListener(floatingView, Constants.FLTNG_VW);
         setFloatingViewListener(collapseButton, Constants.CLLPS_BTN);
         setFloatingViewListener(parkedButton, Constants.PRKD_BTN);
+        setFloatingViewListener(whereButton, Constants.WHR_BTN);
     }
 
     private void setFloatingViewListener(View view, final int view_elem) {
@@ -187,10 +203,13 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
                                 case Constants.FLTNG_VW:
                                     expand();
                                     break;
-                                case Constants.LKNFR_BTN:
-                                    break;
                                 case Constants.PRKD_BTN:
                                     parked();
+                                    break;
+                                case Constants.WHR_BTN:
+                                    where();
+                                    break;
+                                case Constants.LKFR_BTN:
                                     break;
                                 case Constants.LVNG_BTN:
                                     break;
@@ -227,26 +246,31 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
     }
 
     private void expand(){
+        Log.d(Constants.DBG_UI, "Clicked on expand button");
         collapsedView.setVisibility(View.GONE);
         expandedView.setVisibility(View.VISIBLE);
     }
 
     private void collapse(){
+        Log.d(Constants.DBG_UI, "Clicked on collapse button");
         collapsedView.setVisibility(View.VISIBLE);
         expandedView.setVisibility(View.GONE);
     }
 
     private void parked() {
-        Log.d(Constants.DBG_LOC, "Clicked on parked button");
+        Log.d(Constants.DBG_UI, "Clicked on parked button");
         if (mGoogleApiClient == null) {
             buildGoogleApiClient();
         }
         mGoogleApiClient.connect();
         get_location();
-
-
     }
 
+    private void where() {
+        Log.d(Constants.DBG_UI, "Clicked on where button");
+        Intent intent = new Intent(FloatingViewService.this, MapsActivity.class);
+        startActivity(intent);
+    }
 
     /*
     Location related methods
@@ -301,7 +325,8 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
                             startActivity(intent);
                             return;
                         }
-                        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, FloatingViewService.this);
+                        repeatLocationRequests();
+
                         break;
                     case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
                         Log.d(Constants.DBG_LOC, "Need to change GPS settings");
@@ -319,20 +344,66 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
 
     }
 
+    private void repeatLocationRequests(){
+        final Handler handler = new Handler();
+        task = new Runnable() {
+            @Override
+            public void run() {
+                Log.d(Constants.DBG_LOC, "Checking if location condition is met");
+                if (!fiveLocations) {
+                    Log.d(Constants.DBG_LOC, "Condition is not met");
+                    LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, FloatingViewService.this);
+                    handler.postDelayed(task, 400);
+                } else {
+                    fiveLocations = false;
+                }
+            }
+        };
+        handler.postDelayed(task, 400);
+    }
+
     @Override
     public void onLocationChanged(Location location) {
         if (location != null) {
-            Log.d(Constants.DBG_LOC, String.valueOf(location.getLatitude()));
-            Log.d(Constants.DBG_LOC, String.valueOf(location.getLongitude()));
-            try {
-                List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
-                Log.d(Constants.DBG_LOC, "Your car is at: " + addresses.get(0).getAddressLine(0) + ", " + addresses.get(0).getLocality());
-            }
-            catch (IOException e){
-                Snackbar snackbar = Snackbar.make(floatingView, getString(R.string.perm_location_denied), Snackbar.LENGTH_LONG);
-                snackbar.show();
+            locationArray[locationCounter] = location;
+            locationCounter++;
+            if (locationCounter == locationArraySize){
+                LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+                fiveLocations = true;
+                locationCounter = 0;
+                computeLocation();
             }
         }
     }
+
+    private void computeLocation(){
+        double accLat = 0.0;
+        double accLong = 0.0;
+        for (Location loc: locationArray){
+            Log.d(Constants.DBG_LOC, "Current latitude and longitude: " + loc.getLatitude() + " " + loc.getLongitude());
+            accLat += loc.getLatitude();
+            accLong += loc.getLongitude();
+        }
+        double finalLat = accLat / locationArraySize;
+        double finalLong = accLong / locationArraySize;
+        SharedPreferences sharedPreferences = this.getSharedPreferences(Constants.PREF_PARKADO, MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putLong(Constants.PARKED_LAT, Double.doubleToRawLongBits(finalLat));
+        editor.putLong(Constants.PARKED_LONG, Double.doubleToRawLongBits(finalLong));
+        editor.commit();
+
+        try {
+            List<Address> addresses = geocoder.getFromLocation(finalLat, finalLong, 1);
+            Log.d(Constants.DBG_LOC, "Your car is at: " + addresses.get(0).getAddressLine(0) + ", " + addresses.get(0).getLocality());
+            Log.d(Constants.DBG_LOC, "Final latitude and longitude: " + finalLat + " " + finalLong);
+        }
+        catch (IOException e){
+            Snackbar snackbar = Snackbar.make(floatingView, getString(R.string.perm_location_denied), Snackbar.LENGTH_LONG);
+            snackbar.show();
+        }
+
+
+    }
+
 
 }
