@@ -1,5 +1,7 @@
 package com.yogaub.giorgio.parkado;
 
+import android.*;
+import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.design.widget.Snackbar;
@@ -26,13 +28,16 @@ public class PermissionRequestActivity extends AppCompatActivity {
             case Constants.MODIFY_GPS_STATUS:
                 modifyGPSStatus();
                 break;
+            case Constants.SMS_PERMISSION:
+                requestSMSPermission();
+                break;
             default:
                 Log.e(Constants.UNEXP_PAR, "PermissionRequestActivity received unexpected request value");
         }
     }
 
     private void requestLocationPermission(){
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.SYSTEM_ALERT_WINDOW)) {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
             Utils.showMessageOKCancel(this, getString(R.string.perm_location), new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
@@ -49,6 +54,21 @@ public class PermissionRequestActivity extends AppCompatActivity {
         toast.show();
         Intent gpsOptionsIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
         startActivity(gpsOptionsIntent);
+    }
+
+    private void requestSMSPermission(){
+        Toast toast = Toast.makeText(this, getString(R.string.enable_gps), Toast.LENGTH_LONG);
+        toast.show();
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.SEND_SMS)) {
+            Utils.showMessageOKCancel(this, getString(R.string.perm_sms), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    ActivityCompat.requestPermissions(PermissionRequestActivity.this, new String[] {Manifest.permission.SEND_SMS}, Constants.SMS_PERMISSION);
+                }
+            });
+        } else {
+            ActivityCompat.requestPermissions(PermissionRequestActivity.this, new String[] {android.Manifest.permission.SEND_SMS}, Constants.SMS_PERMISSION);
+        }
     }
 
 }

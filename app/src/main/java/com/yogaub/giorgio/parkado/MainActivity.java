@@ -22,16 +22,19 @@ import com.yogaub.giorgio.parkado.services.FloatingViewService;
 import com.yogaub.giorgio.parkado.utilties.Constants;
 import com.yogaub.giorgio.parkado.utilties.Utils;
 
+import java.util.ArrayList;
+
 public class MainActivity extends AppCompatActivity {
 
     private Button start_chathead_btn;
+    private ArrayList<String> perms = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         start_chathead_btn = (Button) findViewById(R.id.start_chathead_btn);
-        checkLocation();
+        askPermissions();
     }
 
 
@@ -46,39 +49,66 @@ public class MainActivity extends AppCompatActivity {
     Permission Management
      */
 
-    private void checkLocation(){
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Log.d(Constants.DBG_LOC, "Permission is not granted");
+    private void askPermissions(){
 
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.d(Constants.DBG_LOC, "Location permission is not granted");
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                Utils.showMessageOKCancel(this, getString(R.string.perm_location), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        perms.add(Manifest.permission.ACCESS_FINE_LOCATION);
+                    }
+                });
+            } else
+                perms.add(Manifest.permission.ACCESS_FINE_LOCATION);
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+            Log.d(Constants.DBG_SMS, "SMS permission is not granted");
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.SYSTEM_ALERT_WINDOW)) {
                 Utils.showMessageOKCancel(this, getString(R.string.perm_location), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        ActivityCompat.requestPermissions(MainActivity.this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, Constants.LOCATION_PERMISSION);
+                        perms.add(Manifest.permission.SEND_SMS);
                     }
                 });
-            } else {
-                ActivityCompat.requestPermissions(MainActivity.this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, Constants.LOCATION_PERMISSION);
-            }
+            } else
+                perms.add(Manifest.permission.SEND_SMS);
+        }
+
+        if (perms.size() > 0){
+            ActivityCompat.requestPermissions(MainActivity.this, perms.toArray(new String[perms.size()]), Constants.MULTIPLE_PERMISSION);
         }
 
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case Constants.LOCATION_PERMISSION:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                    Log.d(Constants.DBG_LOC, "User granted permission");
-                } else {
-                    Log.d(Constants.DBG_LOC, "User denied permission");
-                    Snackbar denied_s = Snackbar.make(start_chathead_btn, getString(R.string.perm_location_denied), Snackbar.LENGTH_LONG);
-                    denied_s.show();
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        for (int i = 0; i < grantResults.length; i++){
+            String asked = perms.get(i);
+            if (grantResults[i] != PackageManager.PERMISSION_GRANTED){
+                Log.d(Constants.DBG_PERM, "User denied permission " + asked);
+                switch (asked){
+                    case Manifest.permission.ACCESS_FINE_LOCATION:
+                        Snackbar denied_l= Snackbar.make(start_chathead_btn, getString(R.string.perm_location_denied), Snackbar.LENGTH_LONG);
+                        denied_l.show();
+                        break;
+                    case Manifest.permission.SEND_SMS:
+                        Snackbar denied_s = Snackbar.make(start_chathead_btn, getString(R.string.perm_sms_denied), Snackbar.LENGTH_LONG);
+                        denied_s.show();
+                        break;
+                    default:
+                        Log.e(Constants.DBG_PERM, "Unexpected Permission Result Callback");
+                        break;
                 }
-
-            default:
-                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            } else {
+                Log.d(Constants.DBG_PERM, "User granted permission " + asked);
+            }
         }
+
+
     }
 
 

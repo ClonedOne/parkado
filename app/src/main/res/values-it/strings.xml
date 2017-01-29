@@ -14,6 +14,8 @@
     <string name="error_googleapi">Spieacente si è verificato un errore nel servizio di Google Play.</string>
     <string name="enable_gps">Per favore abilita il GPS e prova di nuovo.</string>
     <string name="error_splash_screen">Oops! Sembrerebbe ci sia un problemino..</string>
-    <string name="google_maps_key" translatable="false"></string>
     <string name="where_text">Dov\'è la macchina?</string>
+    <string name="map_marker">La tua auto</string>
+    <string name="perm_sms">Parkado ha bisogno dei permessi per spedire SMS.</string>
+    <string name="perm_sms_denied">Avendo negato il permesso, Parkado non potrà inviare SMS.</string>
 </resources>

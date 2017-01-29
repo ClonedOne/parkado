@@ -16,6 +16,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.telephony.SmsManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
@@ -198,27 +200,8 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
                         centerOfScreenByX = windowWidth / 2;
 
                         // If the movement is in a 10 by 10 box, it was a click.
-                        if (Xdiff < 10 && Ydiff < 10) {
-                            switch (view_elem){
-                                case Constants.FLTNG_VW:
-                                    expand();
-                                    break;
-                                case Constants.PRKD_BTN:
-                                    parked();
-                                    break;
-                                case Constants.WHR_BTN:
-                                    where();
-                                    break;
-                                case Constants.LKFR_BTN:
-                                    break;
-                                case Constants.LVNG_BTN:
-                                    break;
-                                case Constants.CLLPS_BTN:
-                                    collapse();
-                                    break;
-                                default:
-                                    return false;
-                            }
+                        if (Xdiff < 5 && Ydiff < 5) {
+                            touchyFishy(view_elem);
                         } else {
                             // remove collapse view when it is in the cancel area
                             if (insideCancelArea()) {
@@ -243,6 +226,30 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
                 return false;
             }
         });
+    }
+
+    private void touchyFishy(int view_elem){
+        switch (view_elem){
+            case Constants.FLTNG_VW:
+                expand();
+                break;
+            case Constants.PRKD_BTN:
+                parked();
+                break;
+            case Constants.WHR_BTN:
+                collapse();
+                where();
+                break;
+            case Constants.LKFR_BTN:
+                break;
+            case Constants.LVNG_BTN:
+                break;
+            case Constants.CLLPS_BTN:
+                collapse();
+                break;
+            default:
+                return;
+        }
     }
 
     private void expand(){
@@ -271,6 +278,7 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
         Intent intent = new Intent(FloatingViewService.this, MapsActivity.class);
         startActivity(intent);
     }
+
 
     /*
     Location related methods
@@ -326,7 +334,6 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
                             return;
                         }
                         repeatLocationRequests();
-
                         break;
                     case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
                         Log.d(Constants.DBG_LOC, "Need to change GPS settings");
@@ -337,7 +344,6 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
                     case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
                         Log.d(Constants.DBG_LOC, "Impossible to change GPS settings");
                         break;
-
                 }
             }
         });
@@ -377,31 +383,46 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
     }
 
     private void computeLocation(){
-        double accLat = 0.0;
-        double accLong = 0.0;
-        for (Location loc: locationArray){
-            Log.d(Constants.DBG_LOC, "Current latitude and longitude: " + loc.getLatitude() + " " + loc.getLongitude());
-            accLat += loc.getLatitude();
-            accLong += loc.getLongitude();
-        }
-        double finalLat = accLat / locationArraySize;
-        double finalLong = accLong / locationArraySize;
+        double finalLat = locationArray[locationArraySize - 1].getLatitude();
+        double finalLong = locationArray[locationArraySize - 1].getLongitude();
         SharedPreferences sharedPreferences = this.getSharedPreferences(Constants.PREF_PARKADO, MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putLong(Constants.PARKED_LAT, Double.doubleToRawLongBits(finalLat));
         editor.putLong(Constants.PARKED_LONG, Double.doubleToRawLongBits(finalLong));
-        editor.commit();
+        editor.apply();
 
         try {
             List<Address> addresses = geocoder.getFromLocation(finalLat, finalLong, 1);
-            Log.d(Constants.DBG_LOC, "Your car is at: " + addresses.get(0).getAddressLine(0) + ", " + addresses.get(0).getLocality());
+            String carLocationDecoded = "Your car is at: " + addresses.get(0).getAddressLine(0) + ", " + addresses.get(0).getLocality();
+            Log.d(Constants.DBG_LOC, carLocationDecoded);
             Log.d(Constants.DBG_LOC, "Final latitude and longitude: " + finalLat + " " + finalLong);
+            sendSMS(carLocationDecoded);
         }
         catch (IOException e){
             Snackbar snackbar = Snackbar.make(floatingView, getString(R.string.perm_location_denied), Snackbar.LENGTH_LONG);
             snackbar.show();
         }
 
+    }
+
+
+    /*
+    SMS related methods
+     */
+
+    public void sendSMS(String carLocationDecoded){
+        Log.d(Constants.DBG_SMS, "Attempting to send SMS");
+        String number = "";
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+            Log.d(Constants.DBG_SMS, "Requesting SMS permission again");
+            Intent intent = new Intent(FloatingViewService.this, PermissionRequestActivity.class);
+            intent.putExtra(Constants.PERM_REQ, Constants.SMS_PERMISSION);
+            startActivity(intent);
+            return;
+        }
+        SmsManager smsManager = SmsManager.getDefault();
+        smsManager.sendTextMessage(number, null, carLocationDecoded, null, null);
 
     }
 

@@ -16,8 +16,11 @@ public class Constants {
     public static final int CLLPS_BTN = 5;
     public static final int CHATHEAD_PERMISSION = 100;
     public static final int LOCATION_PERMISSION = 101;
+    public static final int SMS_PERMISSION = 102;
+    public static final int MULTIPLE_PERMISSION = 103;
     public static final int MODIFY_SYS_OVERLAY = 200;
     public static final int MODIFY_GPS_STATUS = 201;
+
 
 
     // String constants
@@ -32,6 +35,8 @@ public class Constants {
 
     public static final String DBG_CHATHEAD = "Chathead Debug:";
     public static final String DBG_LOC = "Location Debug:";
+    public static final String DBG_SMS = "SMS Debug:";
+    public static final String DBG_PERM = "Permissions Debug:";
     public static final String DBG_UI = "User Interface Debug:";
     public static final String UNEXP_PAR = "Unexpected parameter";
 
