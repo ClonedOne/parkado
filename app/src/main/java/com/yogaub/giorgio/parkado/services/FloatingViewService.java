@@ -422,8 +422,11 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
             return;
         }
         SmsManager smsManager = SmsManager.getDefault();
-        smsManager.sendTextMessage(number, null, carLocationDecoded, null, null);
-
+        try {
+            smsManager.sendTextMessage(number, null, carLocationDecoded, null, null);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
 
