@@ -108,5 +108,10 @@
 
     <string name="action_settings">Settings</string>
 
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="sttings_intro_card_title">Parkado Settings</string>
+    <string name="settings_intro_card_text">Please take a moment to customize Parkado. Enter the kind of car you use and any contact you would like to be notified when the car is parked.</string>
+
 
 </resources>

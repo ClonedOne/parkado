@@ -18,4 +18,6 @@
     <string name="map_marker">La tua auto</string>
     <string name="perm_sms">Parkado ha bisogno dei permessi per spedire SMS.</string>
     <string name="perm_sms_denied">Avendo negato il permesso, Parkado non potrà inviare SMS.</string>
+    <string name="sttings_intro_card_title">Parkado Settings</string>
+    <string name="settings_intro_card_text">Please take a moment to customize Parkado. Enter the kind of car you use and any contact you would like to be notified when the car is parked.</string>
 </resources>

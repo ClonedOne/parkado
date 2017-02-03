@@ -1,6 +1,5 @@
 package com.yogaub.giorgio.parkado;
 
-import android.*;
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.DialogInterface;
@@ -14,7 +13,10 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.CardView;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -25,18 +27,23 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Button;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 
+import com.yogaub.giorgio.parkado.fragments.SettingFragment;
 import com.yogaub.giorgio.parkado.services.FloatingViewService;
 import com.yogaub.giorgio.parkado.utilties.Constants;
 import com.yogaub.giorgio.parkado.utilties.Utils;
 
 import java.util.ArrayList;
 
-public class ActivityHome extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class HomeActivity extends AppCompatActivity implements
+        NavigationView.OnNavigationItemSelectedListener,
+        SettingFragment.OnFragmentInteractionListener {
 
     private ArrayList<String> perms = new ArrayList<>();
     private FloatingActionButton fab;
+    private DrawerLayout drawer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +52,7 @@ public class ActivityHome extends AppCompatActivity implements NavigationView.On
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -53,7 +61,6 @@ public class ActivityHome extends AppCompatActivity implements NavigationView.On
             }
         });
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
@@ -65,12 +72,6 @@ public class ActivityHome extends AppCompatActivity implements NavigationView.On
         askPermissions();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.activity_home, menu);
-        return true;
-    }
 
 
 
@@ -85,7 +86,6 @@ public class ActivityHome extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -93,26 +93,14 @@ public class ActivityHome extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
+        Fragment fragment;
+        Class fragClass = null;
+        FragmentManager fragmentManager = getSupportFragmentManager();
 
         if (id == R.id.nav_camera) {
             // Handle the camera action
@@ -121,19 +109,33 @@ public class ActivityHome extends AppCompatActivity implements NavigationView.On
         } else if (id == R.id.nav_slideshow) {
 
         } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
+            Log.d(Constants.DBG_UI, "Selected setting fragment");
+            fragClass = SettingFragment.class;
         }
 
+        try{
+            if (fragClass != null){
+                fragment = (Fragment) fragClass.newInstance();
+                fragmentManager.beginTransaction().add(R.id.home_activity_frame_layout, fragment).commit();
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
 
-
+    public void hideSettingsIntro(View view) {
+        CardView introCard = (CardView) findViewById(R.id.settings_intro_card_view);
+        Animation animationOut = AnimationUtils.loadAnimation(this, android.R.anim.slide_out_right);
+        if (introCard != null){
+            introCard.startAnimation(animationOut);
+            introCard.setVisibility(View.GONE);
+        }
+        else
+            Log.d(Constants.DBG_UI, "Settings intro card object is null");
+    }
 
     /*
     Permission Management
@@ -168,7 +170,7 @@ public class ActivityHome extends AppCompatActivity implements NavigationView.On
         }
 
         if (perms.size() > 0){
-            ActivityCompat.requestPermissions(ActivityHome.this, perms.toArray(new String[perms.size()]), Constants.MULTIPLE_PERMISSION);
+            ActivityCompat.requestPermissions(HomeActivity.this, perms.toArray(new String[perms.size()]), Constants.MULTIPLE_PERMISSION);
         }
 
     }
@@ -197,8 +199,6 @@ public class ActivityHome extends AppCompatActivity implements NavigationView.On
                 Log.d(Constants.DBG_PERM, "User granted permission " + asked);
             }
         }
-
-
     }
 
 
@@ -235,4 +235,8 @@ public class ActivityHome extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+
+    }
 }
