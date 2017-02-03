@@ -25,12 +25,13 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
+import com.yogaub.giorgio.parkado.fragments.ParkedFragment;
 import com.yogaub.giorgio.parkado.fragments.SettingFragment;
+import com.yogaub.giorgio.parkado.interfaces.OnFragmentInteractionListener;
 import com.yogaub.giorgio.parkado.services.FloatingViewService;
 import com.yogaub.giorgio.parkado.utilties.Constants;
 import com.yogaub.giorgio.parkado.utilties.Utils;
@@ -39,7 +40,7 @@ import java.util.ArrayList;
 
 public class HomeActivity extends AppCompatActivity implements
         NavigationView.OnNavigationItemSelectedListener,
-        SettingFragment.OnFragmentInteractionListener {
+        OnFragmentInteractionListener {
 
     private ArrayList<String> perms = new ArrayList<>();
     private FloatingActionButton fab;
@@ -102,23 +103,29 @@ public class HomeActivity extends AppCompatActivity implements
         Class fragClass = null;
         FragmentManager fragmentManager = getSupportFragmentManager();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-            Log.d(Constants.DBG_UI, "Selected setting fragment");
-            fragClass = SettingFragment.class;
+        switch (id) {
+            case R.id.nav_home:
+                break;
+            case R.id.nav_parked:
+                Log.d(Constants.DBG_UI, "Selected parked fragment");
+                fragClass = ParkedFragment.class;
+                break;
+            case R.id.nav_free:
+                break;
+            case R.id.nav_manage:
+                Log.d(Constants.DBG_UI, "Selected setting fragment");
+                fragClass = SettingFragment.class;
+                break;
+            default:
+                break;
         }
 
-        try{
-            if (fragClass != null){
+        try {
+            if (fragClass != null) {
                 fragment = (Fragment) fragClass.newInstance();
                 fragmentManager.beginTransaction().add(R.id.home_activity_frame_layout, fragment).commit();
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -129,11 +136,10 @@ public class HomeActivity extends AppCompatActivity implements
     public void hideSettingsIntro(View view) {
         CardView introCard = (CardView) findViewById(R.id.settings_intro_card_view);
         Animation animationOut = AnimationUtils.loadAnimation(this, android.R.anim.slide_out_right);
-        if (introCard != null){
+        if (introCard != null) {
             introCard.startAnimation(animationOut);
             introCard.setVisibility(View.GONE);
-        }
-        else
+        } else
             Log.d(Constants.DBG_UI, "Settings intro card object is null");
     }
 
@@ -141,7 +147,7 @@ public class HomeActivity extends AppCompatActivity implements
     Permission Management
      */
 
-    private void askPermissions(){
+    private void askPermissions() {
 
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Log.d(Constants.DBG_LOC, "Location permission is not granted");
@@ -169,7 +175,7 @@ public class HomeActivity extends AppCompatActivity implements
                 perms.add(android.Manifest.permission.SEND_SMS);
         }
 
-        if (perms.size() > 0){
+        if (perms.size() > 0) {
             ActivityCompat.requestPermissions(HomeActivity.this, perms.toArray(new String[perms.size()]), Constants.MULTIPLE_PERMISSION);
         }
 
@@ -178,13 +184,13 @@ public class HomeActivity extends AppCompatActivity implements
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        for (int i = 0; i < grantResults.length; i++){
+        for (int i = 0; i < grantResults.length; i++) {
             String asked = perms.get(i);
-            if (grantResults[i] != PackageManager.PERMISSION_GRANTED){
+            if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
                 Log.d(Constants.DBG_PERM, "User denied permission " + asked);
-                switch (asked){
+                switch (asked) {
                     case Manifest.permission.ACCESS_FINE_LOCATION:
-                        Snackbar denied_l= Snackbar.make(fab, getString(R.string.perm_location_denied), Snackbar.LENGTH_LONG);
+                        Snackbar denied_l = Snackbar.make(fab, getString(R.string.perm_location_denied), Snackbar.LENGTH_LONG);
                         denied_l.show();
                         break;
                     case Manifest.permission.SEND_SMS:
@@ -202,8 +208,8 @@ public class HomeActivity extends AppCompatActivity implements
     }
 
 
-    private void checkOverlay(){
-        if (checkDrawOverlayPermission()){
+    private void checkOverlay() {
+        if (checkDrawOverlayPermission()) {
             Log.d(Constants.DBG_CHATHEAD, "Permission is already granted");
             startService(new Intent(this, FloatingViewService.class));
         } else {

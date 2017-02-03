@@ -38,7 +38,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
-import com.yogaub.giorgio.parkado.MapsActivity;
+import com.yogaub.giorgio.parkado.HomeActivity;
 import com.yogaub.giorgio.parkado.PermissionRequestActivity;
 import com.yogaub.giorgio.parkado.R;
 import com.yogaub.giorgio.parkado.utilties.Constants;
@@ -275,7 +275,7 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
 
     private void where() {
         Log.d(Constants.DBG_UI, "Clicked on where button");
-        Intent intent = new Intent(FloatingViewService.this, MapsActivity.class);
+        Intent intent = new Intent(FloatingViewService.this, HomeActivity.class);
         startActivity(intent);
     }
 
