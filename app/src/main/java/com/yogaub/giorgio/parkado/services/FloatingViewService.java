@@ -252,6 +252,12 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
         }
     }
 
+
+
+    /*
+    Button Actions
+     */
+
     private void expand(){
         Log.d(Constants.DBG_UI, "Clicked on expand button");
         collapsedView.setVisibility(View.GONE);
@@ -276,6 +282,8 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
     private void where() {
         Log.d(Constants.DBG_UI, "Clicked on where button");
         Intent intent = new Intent(FloatingViewService.this, HomeActivity.class);
+        intent.putExtra("Action", Constants.fragParked);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivity(intent);
     }
 

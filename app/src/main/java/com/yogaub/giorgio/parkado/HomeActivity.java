@@ -42,9 +42,21 @@ public class HomeActivity extends AppCompatActivity implements
         NavigationView.OnNavigationItemSelectedListener,
         OnFragmentInteractionListener {
 
-    private ArrayList<String> perms = new ArrayList<>();
+    // Interface
     private FloatingActionButton fab;
+    private NavigationView navigationView;
     private DrawerLayout drawer;
+
+    // Permissions management
+    private ArrayList<String> perms = new ArrayList<>();
+
+    // Fragment management
+    private Fragment curFragment;
+
+
+    /*
+    Lifecycle Management
+     */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,12 +79,24 @@ public class HomeActivity extends AppCompatActivity implements
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
         askPermissions();
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Intent intent = getIntent();
+        switchFragmentOnIntent(intent);
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        switchFragmentOnIntent(intent);
+    }
 
 
 
@@ -94,45 +118,6 @@ public class HomeActivity extends AppCompatActivity implements
         }
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
-    @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
-        Fragment fragment;
-        Class fragClass = null;
-        FragmentManager fragmentManager = getSupportFragmentManager();
-
-        switch (id) {
-            case R.id.nav_home:
-                break;
-            case R.id.nav_parked:
-                Log.d(Constants.DBG_UI, "Selected parked fragment");
-                fragClass = ParkedFragment.class;
-                break;
-            case R.id.nav_free:
-                break;
-            case R.id.nav_manage:
-                Log.d(Constants.DBG_UI, "Selected setting fragment");
-                fragClass = SettingFragment.class;
-                break;
-            default:
-                break;
-        }
-
-        try {
-            if (fragClass != null) {
-                fragment = (Fragment) fragClass.newInstance();
-                fragmentManager.beginTransaction().add(R.id.home_activity_frame_layout, fragment).commit();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
-        return true;
-    }
-
     public void hideSettingsIntro(View view) {
         CardView introCard = (CardView) findViewById(R.id.settings_intro_card_view);
         Animation animationOut = AnimationUtils.loadAnimation(this, android.R.anim.slide_out_right);
@@ -142,6 +127,8 @@ public class HomeActivity extends AppCompatActivity implements
         } else
             Log.d(Constants.DBG_UI, "Settings intro card object is null");
     }
+
+
 
     /*
     Permission Management
@@ -241,8 +228,63 @@ public class HomeActivity extends AppCompatActivity implements
         }
     }
 
+
+
+    /*
+    Fragment Management
+     */
+
     @Override
     public void onFragmentInteraction(Uri uri) {
-
     }
+
+    @SuppressWarnings("StatementWithEmptyBody")
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        if (item.isChecked())
+            return false;
+        Log.v(Constants.DBG_UI, "Performing fragment switch with menu item: " + item.toString());
+        int id = item.getItemId();
+        Fragment fragment;
+        Class fragClass = null;
+        FragmentManager fragmentManager = getSupportFragmentManager();
+
+        switch (id) {
+            case R.id.nav_home:
+                break;
+            case R.id.nav_parked:
+                Log.d(Constants.DBG_UI, "Selected parked fragment");
+                fragClass = ParkedFragment.class;
+                break;
+            case R.id.nav_free:
+                break;
+            case R.id.nav_manage:
+                Log.d(Constants.DBG_UI, "Selected setting fragment");
+                fragClass = SettingFragment.class;
+                break;
+            default:
+                break;
+        }
+
+        try {
+            if (fragClass != null) {
+                fragment = (Fragment) fragClass.newInstance();
+                fragmentManager.beginTransaction().replace(R.id.home_activity_frame_layout, fragment).commit();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        item.setChecked(true);
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
+    }
+
+    private void switchFragmentOnIntent(Intent incomingIntent){
+        int fragId = incomingIntent.getIntExtra("Action", Constants.fragHome);
+        Log.d(Constants.DBG_UI, "Starting main activity with fragId: " + fragId);
+        onNavigationItemSelected(navigationView.getMenu().getItem(fragId));
+    }
+
 }

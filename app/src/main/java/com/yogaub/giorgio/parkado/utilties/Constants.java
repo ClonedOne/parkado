@@ -40,4 +40,11 @@ public class Constants {
     public static final String DBG_UI = "User Interface Debug:";
     public static final String UNEXP_PAR = "Unexpected parameter";
 
+
+    // Fragment Identifiers
+    public static int fragHome = 0;
+    public static int fragParked = 1;
+    public static int fragLooking = 2;
+    public static int fragSettings = 3;
+
 }
