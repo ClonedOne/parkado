@@ -26,6 +26,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -63,7 +64,7 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
     private ImageView collapseButton;
     private ImageView parkedButton;
     private ImageView whereButton;
-    private ImageView lookingforButton;
+    private ImageView lookingForButton;
     private ImageView leavingButton;
     private ImageView cancelView;
     private WindowManager.LayoutParams floatingViewParams;
@@ -83,15 +84,8 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
     private int locationCounter;
 
 
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
-
-
     /*
-    Interface generation
+    Lifecycle Management
      */
 
     @Override
@@ -106,7 +100,7 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
         collapseButton = (ImageView) floatingView.findViewById(R.id.expanded_image_view);
         parkedButton = (ImageView) floatingView.findViewById(R.id.park_button);
         whereButton = (ImageView) floatingView.findViewById(R.id.where_button);
-        lookingforButton = (ImageView) floatingView.findViewById(R.id.looking_for_button);
+        lookingForButton = (ImageView) floatingView.findViewById(R.id.looking_for_button);
         leavingButton = (ImageView) floatingView.findViewById(R.id.leaving_button);
 
         DisplayMetrics displaymetrics = new DisplayMetrics();
@@ -139,6 +133,18 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
         if (floatingView != null) windowManager.removeView(floatingView);
     }
 
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
+
+
+    /*
+    Interface Management
+     */
+
     private boolean insideCancelArea() {
         return ((floatingViewParams.y > windowHeight - cancelView.getHeight() - floatingView.getHeight()) &&
                 ((floatingViewParams.x > centerOfScreenByX - cancelView.getWidth() - floatingView.getWidth() / 2) &&
@@ -166,6 +172,7 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
     }
 
 
+
     /*
     Button listeners
      */
@@ -175,6 +182,8 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
         setFloatingViewListener(collapseButton, Constants.CLLPS_BTN);
         setFloatingViewListener(parkedButton, Constants.PRKD_BTN);
         setFloatingViewListener(whereButton, Constants.WHR_BTN);
+        setFloatingViewListener(lookingForButton, Constants.LKFR_BTN);
+        setFloatingViewListener(leavingButton, Constants.LVNG_BTN);
     }
 
     private void setFloatingViewListener(View view, final int view_elem) {
@@ -186,6 +195,7 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
 
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+                v.setPressed(true);
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         initialX = floatingViewParams.x;
@@ -200,7 +210,7 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
                         centerOfScreenByX = windowWidth / 2;
 
                         // If the movement is in a 10 by 10 box, it was a click.
-                        if (Xdiff < 5 && Ydiff < 5) {
+                        if (Xdiff < 1 && Ydiff < 1) {
                             touchyFishy(view_elem);
                         } else {
                             // remove collapse view when it is in the cancel area
@@ -234,6 +244,7 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
                 expand();
                 break;
             case Constants.PRKD_BTN:
+                collapse();
                 parked();
                 break;
             case Constants.WHR_BTN:
@@ -248,7 +259,6 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
                 collapse();
                 break;
             default:
-                return;
         }
     }
 
@@ -276,6 +286,8 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
             buildGoogleApiClient();
         }
         mGoogleApiClient.connect();
+        Toast toast = Toast.makeText(this, getString(R.string.toast_saving_park), Toast.LENGTH_LONG);
+        toast.show();
         get_location();
     }
 
@@ -286,6 +298,7 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivity(intent);
     }
+
 
 
     /*
@@ -412,6 +425,7 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
         }
 
     }
+
 
 
     /*
