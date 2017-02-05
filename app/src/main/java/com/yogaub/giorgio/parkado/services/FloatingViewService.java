@@ -434,7 +434,14 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
 
     public void sendSMS(String carLocationDecoded){
         Log.d(Constants.DBG_SMS, "Attempting to send SMS");
-        String number = "";
+        SharedPreferences sharedPreferences = this.getSharedPreferences(Constants.PREF_PARKADO, MODE_PRIVATE);
+        String number = sharedPreferences.getString(Constants.SMS_NUMBER, "");
+        if (number.equals("")) {
+            Log.d(Constants.DBG_SMS, "Could not find any saved number");
+            return;
+        } else{
+            Log.d(Constants.DBG_SMS, "Number retrieved: " + number);
+        }
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
             Log.d(Constants.DBG_SMS, "Requesting SMS permission again");

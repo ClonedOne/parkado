@@ -20,7 +20,7 @@ public class Constants {
     public static final int MULTIPLE_PERMISSION = 103;
     public static final int MODIFY_SYS_OVERLAY = 200;
     public static final int MODIFY_GPS_STATUS = 201;
-
+    public static final int PICK_CONTACT = 300;
 
 
     // String constants
@@ -29,6 +29,7 @@ public class Constants {
     public static final String PERM_REQ = "permission request";
     public static final String PARKED_LAT = "parked car latitude";
     public static final String PARKED_LONG = "parked car longitude";
+    public static final String SMS_NUMBER = "SMS number";
 
 
     // Debug strings
@@ -38,6 +39,7 @@ public class Constants {
     public static final String DBG_SMS = "SMS Debug:";
     public static final String DBG_PERM = "Permissions Debug:";
     public static final String DBG_UI = "User Interface Debug:";
+    public static final String DBG_CNTCS = "Contacts Debug:";
     public static final String UNEXP_PAR = "Unexpected parameter";
 
 

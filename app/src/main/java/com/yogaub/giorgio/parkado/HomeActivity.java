@@ -2,12 +2,16 @@ package com.yogaub.giorgio.parkado;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -34,7 +38,6 @@ import com.yogaub.giorgio.parkado.fragments.HomeFragment;
 import com.yogaub.giorgio.parkado.fragments.LookingForFragment;
 import com.yogaub.giorgio.parkado.fragments.ParkedFragment;
 import com.yogaub.giorgio.parkado.fragments.SettingFragment;
-import com.yogaub.giorgio.parkado.interfaces.OnFragmentInteractionListener;
 import com.yogaub.giorgio.parkado.services.FloatingViewService;
 import com.yogaub.giorgio.parkado.utilties.Constants;
 import com.yogaub.giorgio.parkado.utilties.Utils;
@@ -42,8 +45,7 @@ import com.yogaub.giorgio.parkado.utilties.Utils;
 import java.util.ArrayList;
 
 public class HomeActivity extends AppCompatActivity implements
-        NavigationView.OnNavigationItemSelectedListener,
-        OnFragmentInteractionListener {
+        NavigationView.OnNavigationItemSelectedListener {
 
     // Interface
     private FloatingActionButton fab;
@@ -136,6 +138,13 @@ public class HomeActivity extends AppCompatActivity implements
             Log.d(Constants.DBG_UI, "Home intro card object is null");
     }
 
+    public void selectContact(View view) {
+        Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
+        startActivityForResult(intent, Constants.PICK_CONTACT);
+    }
+
+
+
     /*
     Permission Management
      */
@@ -227,10 +236,37 @@ public class HomeActivity extends AppCompatActivity implements
     @Override
     @TargetApi(Build.VERSION_CODES.M)
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == Constants.MODIFY_SYS_OVERLAY) {
-            if (Settings.canDrawOverlays(this)) {
-                startService(new Intent(this, FloatingViewService.class));
-            }
+        switch (requestCode){
+            case Constants.MODIFY_SYS_OVERLAY:
+                if (Settings.canDrawOverlays(this)) {
+                    Log.d(Constants.DBG_UI, "Overlay Drawing allowed");
+                    startService(new Intent(this, FloatingViewService.class));
+                }else{
+                    Log.d(Constants.DBG_UI, "Overlay Drawing NOT allowed");
+                }
+                break;
+            case Constants.PICK_CONTACT:
+                if (resultCode == Activity.RESULT_OK) {
+                    Log.d(Constants.DBG_CNTCS, "Contact picked");
+                    Uri contactData = data.getData();
+                    String[] projection = new String[]{ContactsContract.CommonDataKinds.Phone.NUMBER};
+                    Cursor cursor = getContentResolver().query(contactData, projection,
+                            null, null, null);
+                    if (cursor != null && cursor.moveToFirst()) {
+                        int numberIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
+                        String phoneNumber = cursor.getString(numberIndex);
+                        Log.d(Constants.DBG_CNTCS, "Number picked: " + phoneNumber);
+                        SharedPreferences sharedPreferences = this.getSharedPreferences(Constants.PREF_PARKADO, MODE_PRIVATE);
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putString(Constants.SMS_NUMBER, phoneNumber);
+                        editor.apply();
+                    }
+                    if (cursor != null)
+                        cursor.close();
+                }else {
+                    Log.d(Constants.DBG_CNTCS, "Problem in contact picking");
+                }
+                break;
         }
     }
 
@@ -239,10 +275,6 @@ public class HomeActivity extends AppCompatActivity implements
     /*
     Fragment Management
      */
-
-    @Override
-    public void onFragmentInteraction(Uri uri) {
-    }
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
@@ -279,12 +311,12 @@ public class HomeActivity extends AppCompatActivity implements
         try {
             if (fragClass != null) {
                 fragment = (Fragment) fragClass.newInstance();
-                FragmentTransaction transaction = fragmentManager.beginTransaction().
-                        replace(R.id.home_activity_frame_layout, fragment);
+                FragmentTransaction transaction = fragmentManager.beginTransaction();
                 transaction.setCustomAnimations(
-                        android.R.anim.slide_out_right,
-                        android.R.anim.slide_in_left
+                        R.anim.enter_anim,
+                        R.anim.stay_anim
                 );
+                transaction.replace(R.id.home_activity_frame_layout, fragment);
                 transaction.commit();
             }
         } catch (Exception e) {
