@@ -15,6 +15,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.CardView;
 import android.util.Log;
@@ -29,6 +30,8 @@ import android.view.MenuItem;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
+import com.yogaub.giorgio.parkado.fragments.HomeFragment;
+import com.yogaub.giorgio.parkado.fragments.LookingForFragment;
 import com.yogaub.giorgio.parkado.fragments.ParkedFragment;
 import com.yogaub.giorgio.parkado.fragments.SettingFragment;
 import com.yogaub.giorgio.parkado.interfaces.OnFragmentInteractionListener;
@@ -128,7 +131,15 @@ public class HomeActivity extends AppCompatActivity implements
             Log.d(Constants.DBG_UI, "Settings intro card object is null");
     }
 
-
+    public void hideHomeIntro(View view) {
+        CardView introCard = (CardView) findViewById(R.id.home_intro_card_view);
+        Animation animationOut = AnimationUtils.loadAnimation(this, android.R.anim.slide_out_right);
+        if (introCard != null) {
+            introCard.startAnimation(animationOut);
+            introCard.setVisibility(View.GONE);
+        } else
+            Log.d(Constants.DBG_UI, "Home intro card object is null");
+    }
 
     /*
     Permission Management
@@ -251,12 +262,16 @@ public class HomeActivity extends AppCompatActivity implements
 
         switch (id) {
             case R.id.nav_home:
+                Log.d(Constants.DBG_UI, "Selected home fragment");
+                fragClass = HomeFragment.class;
                 break;
             case R.id.nav_parked:
                 Log.d(Constants.DBG_UI, "Selected parked fragment");
                 fragClass = ParkedFragment.class;
                 break;
             case R.id.nav_free:
+                Log.d(Constants.DBG_UI, "Selected looking for fragment");
+                fragClass = LookingForFragment.class;
                 break;
             case R.id.nav_manage:
                 Log.d(Constants.DBG_UI, "Selected setting fragment");
@@ -269,7 +284,13 @@ public class HomeActivity extends AppCompatActivity implements
         try {
             if (fragClass != null) {
                 fragment = (Fragment) fragClass.newInstance();
-                fragmentManager.beginTransaction().replace(R.id.home_activity_frame_layout, fragment).commit();
+                FragmentTransaction transaction = fragmentManager.beginTransaction().
+                        replace(R.id.home_activity_frame_layout, fragment);
+                transaction.setCustomAnimations(
+                        android.R.anim.slide_out_right,
+                        android.R.anim.slide_in_left
+                );
+                transaction.commit();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -281,7 +302,7 @@ public class HomeActivity extends AppCompatActivity implements
         return true;
     }
 
-    private void switchFragmentOnIntent(Intent incomingIntent){
+    private void switchFragmentOnIntent(Intent incomingIntent) {
         int fragId = incomingIntent.getIntExtra("Action", Constants.fragHome);
         Log.d(Constants.DBG_UI, "Starting main activity with fragId: " + fragId);
         onNavigationItemSelected(navigationView.getMenu().getItem(fragId));

@@ -115,6 +115,8 @@
     <string name="nav_settings">Settings</string>
     <string name="parked">Parked</string>
 
+    <string name="home_intro_card_title">Welcome to Parkado!</string>
+    <string name="home_intro_card_text">Parkado can relieve  the stress of parking in the city! Please take a moment to discover the app.</string>
 
 
 </resources>

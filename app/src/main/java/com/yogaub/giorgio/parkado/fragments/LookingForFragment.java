@@ -3,7 +3,6 @@ package com.yogaub.giorgio.parkado.fragments;
 import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -31,7 +30,7 @@ import com.yogaub.giorgio.parkado.utilties.Utils;
 import java.util.Objects;
 
 
-public class ParkedFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener {
+public class LookingForFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener {
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     private String mParam1;
@@ -39,14 +38,15 @@ public class ParkedFragment extends Fragment implements OnMapReadyCallback, Goog
     private GoogleMap mMap;
     private View mapView;
 
+
     private OnFragmentInteractionListener mListener;
 
-    public ParkedFragment() {
+    public LookingForFragment() {
         // Required empty public constructor
     }
 
-    public static ParkedFragment newInstance(String param1, String param2) {
-        ParkedFragment fragment = new ParkedFragment();
+    public static LookingForFragment newInstance(String param1, String param2) {
+        LookingForFragment fragment = new LookingForFragment();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
@@ -64,19 +64,19 @@ public class ParkedFragment extends Fragment implements OnMapReadyCallback, Goog
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_parked, container, false);
+    public void onStart() {
+        super.onStart();
+        mapView = getActivity().findViewById(R.id.looking_for_map_frag);
+        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
+                .findFragmentById(R.id.looking_for_map_frag);
+        mapFragment.getMapAsync(this);
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-        mapView = getActivity().findViewById(R.id.parked_map_frag);
-        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
-                .findFragmentById(R.id.parked_map_frag);
-        mapFragment.getMapAsync(this);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        return inflater.inflate(R.layout.fragment_looking_for, container, false);
     }
 
     public void onButtonPressed(Uri uri) {
@@ -132,9 +132,6 @@ public class ParkedFragment extends Fragment implements OnMapReadyCallback, Goog
                 ActivityCompat.requestPermissions(getActivity(), new String[] {android.Manifest.permission.ACCESS_FINE_LOCATION}, Constants.LOCATION_PERMISSION);
             }
         }
-        LatLng carLocation = getCarLocation();
-        mMap.addMarker(new MarkerOptions().position(carLocation).title(getString(R.string.map_marker)));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(carLocation, 16));
     }
 
     @Override
@@ -150,11 +147,4 @@ public class ParkedFragment extends Fragment implements OnMapReadyCallback, Goog
         }
     }
 
-    private LatLng getCarLocation(){
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences(Constants.PREF_PARKADO, Context.MODE_PRIVATE);
-        double carLat = Double.longBitsToDouble(sharedPreferences.getLong(Constants.PARKED_LAT, 0));
-        double carLong = Double.longBitsToDouble(sharedPreferences.getLong(Constants.PARKED_LONG, 0));
-        Log.d(Constants.DBG_LOC, "Car is at: " + carLat + " " + carLong);
-        return new LatLng(carLat, carLong);
-    }
 }

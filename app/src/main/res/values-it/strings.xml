@@ -18,12 +18,14 @@
     <string name="map_marker">La tua auto</string>
     <string name="perm_sms">Parkado ha bisogno dei permessi per spedire SMS.</string>
     <string name="perm_sms_denied">Avendo negato il permesso, Parkado non potrà inviare SMS.</string>
-    <string name="sttings_intro_card_title">Parkado Settings</string>
-    <string name="settings_intro_card_text">Please take a moment to customize Parkado. Enter the kind of car you use and any contact you would like to be notified when the car is parked.</string>
+    <string name="sttings_intro_card_title">Impostazioni</string>
+    <string name="settings_intro_card_text">Inserisci il tipo di auto che utilizzi ed eventuali contatti che desideri vengano notificati con un SMS quando parcheggi.</string>
     <string name="nav_home">Home</string>
     <string name="nav_settings">Impostazioni</string>
     <string name="action_settings">Impostazioni</string>
     <string name="nav_free">Posti liberi</string>
     <string name="parked">Parcheggiato</string>
     <string name="toast_saving_park">Parkado sta memorizzando la posizione del tuo parcheggio!</string>
+    <string name="home_intro_card_text">Parkado può alleviare lo stress del parcheggio in città!  Prenditi un minuto per scoprire l\'app.</string>
+    <string name="home_intro_card_title">Benvenuto in Parkado!</string>
 </resources>
