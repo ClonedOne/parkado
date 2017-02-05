@@ -32,35 +32,12 @@ import java.util.Objects;
 
 
 public class ParkedFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener {
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-    private String mParam1;
-    private String mParam2;
     private GoogleMap mMap;
     private View mapView;
 
-    private OnFragmentInteractionListener mListener;
 
     public ParkedFragment() {
         // Required empty public constructor
-    }
-
-    public static ParkedFragment newInstance(String param1, String param2) {
-        ParkedFragment fragment = new ParkedFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
     }
 
     @Override
@@ -77,29 +54,6 @@ public class ParkedFragment extends Fragment implements OnMapReadyCallback, Goog
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
                 .findFragmentById(R.id.parked_map_frag);
         mapFragment.getMapAsync(this);
-    }
-
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
     }
 
     @Override
@@ -119,17 +73,17 @@ public class ParkedFragment extends Fragment implements OnMapReadyCallback, Goog
         if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             Log.d(Constants.DBG_LOC, "Location permission is available. Shows MyLocation button.");
             mMap.setMyLocationEnabled(true);
-        }else {
+        } else {
             Log.d(Constants.DBG_LOC, "Location permission is not available. Asking for permission.");
             if (ActivityCompat.shouldShowRequestPermissionRationale(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)) {
                 Utils.showMessageOKCancel(getContext(), getString(R.string.perm_location), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        ActivityCompat.requestPermissions(getActivity(), new String[] {android.Manifest.permission.ACCESS_FINE_LOCATION}, Constants.LOCATION_PERMISSION);
+                        ActivityCompat.requestPermissions(getActivity(), new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, Constants.LOCATION_PERMISSION);
                     }
                 });
             } else {
-                ActivityCompat.requestPermissions(getActivity(), new String[] {android.Manifest.permission.ACCESS_FINE_LOCATION}, Constants.LOCATION_PERMISSION);
+                ActivityCompat.requestPermissions(getActivity(), new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, Constants.LOCATION_PERMISSION);
             }
         }
         LatLng carLocation = getCarLocation();
@@ -150,7 +104,7 @@ public class ParkedFragment extends Fragment implements OnMapReadyCallback, Goog
         }
     }
 
-    private LatLng getCarLocation(){
+    private LatLng getCarLocation() {
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences(Constants.PREF_PARKADO, Context.MODE_PRIVATE);
         double carLat = Double.longBitsToDouble(sharedPreferences.getLong(Constants.PARKED_LAT, 0));
         double carLong = Double.longBitsToDouble(sharedPreferences.getLong(Constants.PARKED_LONG, 0));

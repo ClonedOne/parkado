@@ -84,15 +84,10 @@ public class HomeActivity extends AppCompatActivity implements
 
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-
-        askPermissions();
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
         Intent intent = getIntent();
         switchFragmentOnIntent(intent);
+
+        askPermissions();
     }
 
     @Override

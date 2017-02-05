@@ -31,45 +31,12 @@ import java.util.Objects;
 
 
 public class LookingForFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener {
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-    private String mParam1;
-    private String mParam2;
     private GoogleMap mMap;
     private View mapView;
 
 
-    private OnFragmentInteractionListener mListener;
-
     public LookingForFragment() {
         // Required empty public constructor
-    }
-
-    public static LookingForFragment newInstance(String param1, String param2) {
-        LookingForFragment fragment = new LookingForFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        mapView = getActivity().findViewById(R.id.looking_for_map_frag);
-        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
-                .findFragmentById(R.id.looking_for_map_frag);
-        mapFragment.getMapAsync(this);
     }
 
     @Override
@@ -79,27 +46,13 @@ public class LookingForFragment extends Fragment implements OnMapReadyCallback, 
         return inflater.inflate(R.layout.fragment_looking_for, container, false);
     }
 
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
-
     @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
+    public void onStart() {
+        super.onStart();
+        mapView = getActivity().findViewById(R.id.looking_for_map_frag);
+        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
+                .findFragmentById(R.id.looking_for_map_frag);
+        mapFragment.getMapAsync(this);
     }
 
     @Override
@@ -119,17 +72,17 @@ public class LookingForFragment extends Fragment implements OnMapReadyCallback, 
         if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             Log.d(Constants.DBG_LOC, "Location permission is available. Shows MyLocation button.");
             mMap.setMyLocationEnabled(true);
-        }else {
+        } else {
             Log.d(Constants.DBG_LOC, "Location permission is not available. Asking for permission.");
             if (ActivityCompat.shouldShowRequestPermissionRationale(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)) {
                 Utils.showMessageOKCancel(getContext(), getString(R.string.perm_location), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        ActivityCompat.requestPermissions(getActivity(), new String[] {android.Manifest.permission.ACCESS_FINE_LOCATION}, Constants.LOCATION_PERMISSION);
+                        ActivityCompat.requestPermissions(getActivity(), new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, Constants.LOCATION_PERMISSION);
                     }
                 });
             } else {
-                ActivityCompat.requestPermissions(getActivity(), new String[] {android.Manifest.permission.ACCESS_FINE_LOCATION}, Constants.LOCATION_PERMISSION);
+                ActivityCompat.requestPermissions(getActivity(), new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, Constants.LOCATION_PERMISSION);
             }
         }
     }
