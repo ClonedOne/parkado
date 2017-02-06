@@ -252,8 +252,12 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
                 where();
                 break;
             case Constants.LKFR_BTN:
+                collapse();
+                lookingFor();
                 break;
             case Constants.LVNG_BTN:
+                collapse();
+                leaving();
                 break;
             case Constants.CLLPS_BTN:
                 collapse();
@@ -268,13 +272,13 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
     Button Actions
      */
 
-    private void expand(){
+    private void expand() {
         Log.d(Constants.DBG_UI, "Clicked on expand button");
         collapsedView.setVisibility(View.GONE);
         expandedView.setVisibility(View.VISIBLE);
     }
 
-    private void collapse(){
+    private void collapse() {
         Log.d(Constants.DBG_UI, "Clicked on collapse button");
         collapsedView.setVisibility(View.VISIBLE);
         expandedView.setVisibility(View.GONE);
@@ -297,6 +301,26 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
         intent.putExtra("Action", Constants.fragParked);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivity(intent);
+    }
+
+    private void leaving() {
+        Log.d(Constants.DBG_UI, "Clicked on leaving button");
+        SharedPreferences sharedPreferences = this.getSharedPreferences(Constants.PREF_PARKADO, MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.remove(Constants.PARKED_LAT);
+        editor.remove(Constants.PARKED_LONG);
+        editor.apply();
+        Toast toast = Toast.makeText(this, getString(R.string.toast_leaving), Toast.LENGTH_LONG);
+        toast.show();
+    }
+
+    private void lookingFor() {
+        Log.d(Constants.DBG_UI, "Clicked on where button");
+        Intent intent = new Intent(FloatingViewService.this, HomeActivity.class);
+        intent.putExtra("Action", Constants.fragLooking);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(intent);
+
     }
 
 

@@ -117,6 +117,7 @@
 
     <string name="home_intro_card_title">Welcome to Parkado!</string>
     <string name="home_intro_card_text">Parkado can relieve  the stress of parking in the city! Please take a moment to discover the app.</string>
+    <string name="toast_leaving">Thank you for signaling Parkado the free spot!</string>
 
 
 </resources>

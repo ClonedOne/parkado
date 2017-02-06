@@ -85,8 +85,10 @@ public class ParkedFragment extends Fragment implements OnMapReadyCallback, Goog
             }
         }
         LatLng carLocation = getCarLocation();
-        mMap.addMarker(new MarkerOptions().position(carLocation).title(getString(R.string.map_marker)));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(carLocation, 16));
+        if (carLocation != null) {
+            mMap.addMarker(new MarkerOptions().position(carLocation).title(getString(R.string.map_marker)));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(carLocation, 16));
+        }
     }
 
     @Override
@@ -106,6 +108,8 @@ public class ParkedFragment extends Fragment implements OnMapReadyCallback, Goog
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences(Constants.PREF_PARKADO, Context.MODE_PRIVATE);
         double carLat = Double.longBitsToDouble(sharedPreferences.getLong(Constants.PARKED_LAT, 0));
         double carLong = Double.longBitsToDouble(sharedPreferences.getLong(Constants.PARKED_LONG, 0));
+        if (carLat == carLong && carLat == 0)
+            return null;
         Log.d(Constants.DBG_LOC, "Car is at: " + carLat + " " + carLong);
         return new LatLng(carLat, carLong);
     }

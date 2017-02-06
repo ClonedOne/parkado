@@ -28,4 +28,5 @@
     <string name="toast_saving_park">Parkado sta memorizzando la posizione del tuo parcheggio!</string>
     <string name="home_intro_card_text">Parkado può alleviare lo stress del parcheggio in città!  Prenditi un minuto per scoprire l\'app.</string>
     <string name="home_intro_card_title">Benvenuto in Parkado!</string>
+    <string name="toast_leaving">Grazie per aver segnalato a Parkado il posto lbero!</string>
 </resources>
