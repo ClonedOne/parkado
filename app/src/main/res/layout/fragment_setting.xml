@@ -5,17 +5,8 @@
     android:orientation="vertical"
     tools:context="com.yogaub.giorgio.parkado.fragments.SettingFragment">
 
-    <include layout="@layout/card_settings_intro"/>
+    <!-- <include layout="@layout/card_settings_intro"/> -->
 
-    <Button
-        android:text="SMS"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="@android:color/white"
-        android:textStyle="bold"
-        android:background="@color/colorAccent"
-        android:id="@+id/button2"
-        android:onClick="selectContact"/>
-
+    <include layout="@layout/card_settings_options" />
 
 </LinearLayout>

@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
@@ -33,6 +34,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.Spinner;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.yogaub.giorgio.parkado.fragments.HomeFragment;
@@ -147,6 +149,33 @@ public class HomeActivity extends AppCompatActivity implements
         Intent exit = new Intent(HomeActivity.this, LoginActivity.class);
         startActivity(exit);
     }
+
+    public void setCar(View view) {
+        Spinner spinner = (Spinner) findViewById(R.id.spinner);
+        String selected = (String) spinner.getSelectedItem();
+        Log.d(Constants.DBG_UI, "Selected item: " + selected);
+        Resources r = getResources();
+        String[] carTypes = r.getStringArray(R.array.car_type_array);
+        int i;
+        for (i = 0; i < carTypes.length; i++){
+            if (carTypes[i].equals(selected)) {
+                break;
+            }
+        }
+        SharedPreferences sharedPreferences = this.getSharedPreferences(Constants.PREF_PARKADO, MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt(Constants.CAR_TYPE, i+1);
+        editor.apply();
+    }
+
+    public void removeContact(View view) {
+        SharedPreferences sharedPreferences = this.getSharedPreferences(Constants.PREF_PARKADO, MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.remove(Constants.SMS_NUMBER);
+        editor.apply();
+    }
+
+
 
 
     /*
@@ -341,5 +370,6 @@ public class HomeActivity extends AppCompatActivity implements
         Log.d(Constants.DBG_UI, "Starting main activity with fragId: " + fragId);
         onNavigationItemSelected(navigationView.getMenu().getItem(fragId));
     }
+
 
 }

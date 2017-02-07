@@ -29,10 +29,10 @@ public class Constants {
     public static final String PERM_REQ = "permission request";
     public static final String PARKED_LAT = "parked car latitude";
     public static final String PARKED_LONG = "parked car longitude";
-
-
+    public static final String CAR_TYPE = "Car Type";
     public static final String SMS_NUMBER = "SMS number";
 
+    
     // Debug strings
     public static final String DBG_CHATHEAD = "Chathead Debug:";
     public static final String DBG_AUTH = "Authentication Debug:";
@@ -41,6 +41,7 @@ public class Constants {
     public static final String DBG_PERM = "Permissions Debug:";
     public static final String DBG_UI = "User Interface Debug:";
     public static final String DBG_CNTCS = "Contacts Debug:";
+    public static final String DBG_ALOG = "App Logic Debug:";
     public static final String UNEXP_PAR = "Unexpected parameter";
 
 

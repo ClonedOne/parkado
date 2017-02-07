@@ -130,3 +130,15 @@ public void onRequestPermissionsResult(int requestCode, @NonNull String[] permis
 
 
 
+
+
+
+
+
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putLong(Constants.PARKED_LAT, Double.doubleToRawLongBits(finalLat));
+        editor.putLong(Constants.PARKED_LONG, Double.doubleToRawLongBits(finalLong));
+        editor.apply();
+
+
+

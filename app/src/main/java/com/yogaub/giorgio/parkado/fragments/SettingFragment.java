@@ -5,6 +5,8 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 
 import com.yogaub.giorgio.parkado.R;
 
@@ -23,4 +25,14 @@ public class SettingFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_setting, container, false);
     }
 
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Spinner spinner = (Spinner) getActivity().findViewById(R.id.spinner);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getContext(),
+                R.array.car_type_array, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+    }
 }

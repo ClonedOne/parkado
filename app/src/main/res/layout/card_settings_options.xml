@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/settings_sms_card_view"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clickable="true"
+    android:elevation="10dp"
+    android:foreground="?android:attr/selectableItemBackground"
+    android:layout_margin="5dp">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="15dp">
+
+        <TextView
+            android:id="@+id/settings_sms_card_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:textSize="18sp"
+            android:textColor="@color/colorPrimary"
+            android:textStyle="bold"
+            android:gravity="start"
+            android:layout_marginBottom="4dp"
+            android:text="@string/sttings_intro_card_title"
+            />
+
+        <TextView
+            android:id="@+id/settings_sms_card_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="4"
+            android:textSize="16sp"
+            android:gravity="start"
+            android:text="@string/settings_sms_card_text"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_gravity="bottom|end">
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/white"
+                android:background="@color/colorAccent"
+                android:text="@string/set_sms_button"
+                android:onClick="selectContact"
+                android:layout_marginRight="4dp"/>
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/white"
+                android:background="@color/colorPrimary"
+                android:text="@string/remove_sms_button"
+                android:onClick="removeContact"
+                android:layout_marginLeft="4dp"/>
+
+        </LinearLayout>
+
+
+
+        <TextView
+            android:id="@+id/settings_car_type_card_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="4"
+            android:layout_marginTop="36dp"
+            android:textSize="16sp"
+            android:gravity="start"
+            android:text="@string/settings_car_type_card_text"/>
+
+        <Spinner
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/spinner"
+            android:layout_marginTop="8dp"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:background="@color/colorAccent"
+            android:layout_gravity="bottom|end"
+            android:layout_marginTop="16dp"
+            android:text="@string/set_car_button"
+            android:onClick="setCar"/>
+    </LinearLayout>
+
+</android.support.v7.widget.CardView>

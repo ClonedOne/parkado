@@ -138,6 +138,20 @@
     <string name="log_out">Log Out</string>
     <string name="google_sign_in">Or Sign In with Google</string>
     <string name="error_google_atuh">There was a problem with the Google Sign In</string>
+    <string name="car_not_set">Please set up car details in Parkado settings and retry!</string>
+    <string name="sttings_options_card_title">Options</string>
+    <string name="settings_sms_card_text">Select a contact who will be notified via SMS when you park your car.</string>
+    <string name="settings_car_type_card_text">Set the type of car you are drving.</string>
+    <string name="set_car_button">Set Car</string>
+    <string name="set_sms_button">Set SMS</string>
+    <string name="remove_sms_button">Remove</string>
+
+
+    <string-array name="car_type_array">
+        <item>City car</item>
+        <item>Sedan</item>
+        <item>SUV</item>
+    </string-array>
 
 
 </resources>

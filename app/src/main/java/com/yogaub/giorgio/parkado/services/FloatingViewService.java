@@ -51,7 +51,7 @@ import java.util.Locale;
 
 /**
  * Created by Giorgio on yogaub.
- *
+ * <p>
  * This class is a service responsible for the creation and management of the Floating View.
  */
 
@@ -77,10 +77,10 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
     private Geocoder geocoder;
     private LocationRequest mLocationRequest;
 
-    private boolean fiveLocations = false;
+    private boolean stopLocationUpdate = false;
     private Runnable task;
-    private int locationArraySize = 15;
-    private Location [] locationArray = new Location[locationArraySize];
+    private int locationArraySize = 10;
+    private Location[] locationArray = new Location[locationArraySize];
     private int locationCounter;
 
 
@@ -177,7 +177,7 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
     Button listeners
      */
 
-    private void setButtonListeners(){
+    private void setButtonListeners() {
         setFloatingViewListener(floatingView, Constants.FLTNG_VW);
         setFloatingViewListener(collapseButton, Constants.CLLPS_BTN);
         setFloatingViewListener(parkedButton, Constants.PRKD_BTN);
@@ -238,8 +238,8 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
         });
     }
 
-    private void touchyFishy(int view_elem){
-        switch (view_elem){
+    private void touchyFishy(int view_elem) {
+        switch (view_elem) {
             case Constants.FLTNG_VW:
                 expand();
                 break;
@@ -395,18 +395,18 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
 
     }
 
-    private void repeatLocationRequests(){
+    private void repeatLocationRequests() {
         final Handler handler = new Handler();
         task = new Runnable() {
             @Override
             public void run() {
                 Log.d(Constants.DBG_LOC, "Checking if location condition is met");
-                if (!fiveLocations) {
+                if (!stopLocationUpdate) {
                     Log.d(Constants.DBG_LOC, "Condition is not met");
                     LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, FloatingViewService.this);
                     handler.postDelayed(task, 400);
                 } else {
-                    fiveLocations = false;
+                    stopLocationUpdate = false;
                 }
             }
         };
@@ -417,24 +417,34 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
     public void onLocationChanged(Location location) {
         if (location != null) {
             locationArray[locationCounter] = location;
+            Log.d(Constants.DBG_LOC, "Added nth location: " + locationCounter);
             locationCounter++;
-            if (locationCounter == locationArraySize){
+            if (locationCounter == locationArraySize) {
                 LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-                fiveLocations = true;
+                stopLocationUpdate = true;
                 locationCounter = 0;
                 computeLocation();
             }
         }
     }
 
-    private void computeLocation(){
+    private void computeLocation() {
         double finalLat = locationArray[locationArraySize - 1].getLatitude();
         double finalLong = locationArray[locationArraySize - 1].getLongitude();
         SharedPreferences sharedPreferences = this.getSharedPreferences(Constants.PREF_PARKADO, MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putLong(Constants.PARKED_LAT, Double.doubleToRawLongBits(finalLat));
-        editor.putLong(Constants.PARKED_LONG, Double.doubleToRawLongBits(finalLong));
-        editor.apply();
+
+        int carType = sharedPreferences.getInt(Constants.CAR_TYPE, 0);
+        if (carType == 0) {
+            Log.d(Constants.DBG_ALOG, "Car type not found");
+            Toast toast = Toast.makeText(this, getString(R.string.car_not_set), Toast.LENGTH_LONG);
+            toast.show();
+            Intent intent = new Intent(FloatingViewService.this, HomeActivity.class);
+            intent.putExtra("Action", Constants.fragSettings);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+            return;
+        }
+        Log.d(Constants.DBG_ALOG, "Retrieved car type: " + carType);
 
         try {
             List<Address> addresses = geocoder.getFromLocation(finalLat, finalLong, 1);
@@ -442,10 +452,9 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
             Log.d(Constants.DBG_LOC, carLocationDecoded);
             Log.d(Constants.DBG_LOC, "Final latitude and longitude: " + finalLat + " " + finalLong);
             sendSMS(carLocationDecoded);
-        }
-        catch (IOException e){
-            Snackbar snackbar = Snackbar.make(floatingView, getString(R.string.perm_location_denied), Snackbar.LENGTH_LONG);
-            snackbar.show();
+        } catch (IOException e) {
+            Toast toast = Toast.makeText(this, getString(R.string.perm_location_denied), Toast.LENGTH_LONG);
+            toast.show();
         }
 
     }
@@ -456,14 +465,14 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
     SMS related methods
      */
 
-    public void sendSMS(String carLocationDecoded){
+    public void sendSMS(String carLocationDecoded) {
         Log.d(Constants.DBG_SMS, "Attempting to send SMS");
         SharedPreferences sharedPreferences = this.getSharedPreferences(Constants.PREF_PARKADO, MODE_PRIVATE);
         String number = sharedPreferences.getString(Constants.SMS_NUMBER, "");
         if (number.equals("")) {
             Log.d(Constants.DBG_SMS, "Could not find any saved number");
             return;
-        } else{
+        } else {
             Log.d(Constants.DBG_SMS, "Number retrieved: " + number);
         }
 
@@ -477,7 +486,7 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
         SmsManager smsManager = SmsManager.getDefault();
         try {
             smsManager.sendTextMessage(number, null, carLocationDecoded, null, null);
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
