@@ -34,6 +34,7 @@ import android.view.MenuItem;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.yogaub.giorgio.parkado.fragments.HomeFragment;
 import com.yogaub.giorgio.parkado.fragments.LookingForFragment;
 import com.yogaub.giorgio.parkado.fragments.ParkedFragment;
@@ -55,8 +56,6 @@ public class HomeActivity extends AppCompatActivity implements
     // Permissions management
     private ArrayList<String> perms = new ArrayList<>();
 
-    // Fragment management
-    private Fragment curFragment;
 
 
     /*
@@ -143,6 +142,11 @@ public class HomeActivity extends AppCompatActivity implements
         startActivityForResult(intent, Constants.PICK_CONTACT);
     }
 
+    private void logOut() {
+        FirebaseAuth.getInstance().signOut();
+        Intent exit = new Intent(HomeActivity.this, LoginActivity.class);
+        startActivity(exit);
+    }
 
 
     /*
@@ -304,6 +308,10 @@ public class HomeActivity extends AppCompatActivity implements
                 Log.d(Constants.DBG_UI, "Selected setting fragment");
                 fragClass = SettingFragment.class;
                 break;
+            case R.id.nav_log_out:
+                drawer.closeDrawer(GravityCompat.START);
+                logOut();
+                return true;
             default:
                 break;
         }
@@ -324,7 +332,6 @@ public class HomeActivity extends AppCompatActivity implements
         }
 
         item.setChecked(true);
-        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }

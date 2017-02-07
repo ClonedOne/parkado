@@ -14,6 +14,7 @@ public class Constants {
     public static final int LKFR_BTN = 3;
     public static final int LVNG_BTN = 4;
     public static final int CLLPS_BTN = 5;
+    public static final int SIGN_IN = 10;
     public static final int CHATHEAD_PERMISSION = 100;
     public static final int LOCATION_PERMISSION = 101;
     public static final int SMS_PERMISSION = 102;
@@ -21,20 +22,20 @@ public class Constants {
     public static final int MODIFY_SYS_OVERLAY = 200;
     public static final int MODIFY_GPS_STATUS = 201;
     public static final int PICK_CONTACT = 300;
-
+    public static final int READ_CONTACTS = 400;
 
     // String constants
-
     public static final String PREF_PARKADO = "Parkado Shared Preferences";
     public static final String PERM_REQ = "permission request";
     public static final String PARKED_LAT = "parked car latitude";
     public static final String PARKED_LONG = "parked car longitude";
+
+
     public static final String SMS_NUMBER = "SMS number";
 
-
     // Debug strings
-
     public static final String DBG_CHATHEAD = "Chathead Debug:";
+    public static final String DBG_AUTH = "Authentication Debug:";
     public static final String DBG_LOC = "Location Debug:";
     public static final String DBG_SMS = "SMS Debug:";
     public static final String DBG_PERM = "Permissions Debug:";

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "717906553884",
+    "firebase_url": "https://parkado-1477431423732.firebaseio.com",
+    "project_id": "parkado-1477431423732",
+    "storage_bucket": "parkado-1477431423732.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:717906553884:android:068e80aeba4a55bd",
+        "android_client_info": {
+          "package_name": "com.yogaub.giorgio.parkado"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "717906553884-hi3bsoia3r9tgdev7uuj2rohnq3ekl39.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCMwGb6aGUrCEcK-T3cN1pT_Bs6pOSoTFU"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "717906553884-hi3bsoia3r9tgdev7uuj2rohnq3ekl39.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
