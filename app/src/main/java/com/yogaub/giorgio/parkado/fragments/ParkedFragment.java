@@ -1,9 +1,8 @@
 package com.yogaub.giorgio.parkado.fragments;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.DialogInterface;
-import android.content.SharedPreferences;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -15,6 +14,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -22,6 +22,14 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.yogaub.giorgio.parkado.LoginActivity;
 import com.yogaub.giorgio.parkado.R;
 import com.yogaub.giorgio.parkado.utilties.Constants;
 import com.yogaub.giorgio.parkado.utilties.Utils;
@@ -30,9 +38,16 @@ import java.util.Objects;
 
 
 public class ParkedFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener {
+
     private GoogleMap mMap;
     private View mapView;
 
+    private DatabaseReference mDatabase;
+
+
+    /*
+    Lifecycle Management
+     */
 
     public ParkedFragment() {
         // Required empty public constructor
@@ -42,6 +57,7 @@ public class ParkedFragment extends Fragment implements OnMapReadyCallback, Goog
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
+        mDatabase = FirebaseDatabase.getInstance().getReference();
         return inflater.inflate(R.layout.fragment_parked, container, false);
     }
 
@@ -53,6 +69,12 @@ public class ParkedFragment extends Fragment implements OnMapReadyCallback, Goog
                 .findFragmentById(R.id.parked_map_frag);
         mapFragment.getMapAsync(this);
     }
+
+
+
+    /*
+    Google Maps Management
+     */
 
     @Override
     public void onMapClick(LatLng latLng) {
@@ -91,6 +113,11 @@ public class ParkedFragment extends Fragment implements OnMapReadyCallback, Goog
         }
     }
 
+
+    /*
+    Permission Management
+     */
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -104,13 +131,31 @@ public class ParkedFragment extends Fragment implements OnMapReadyCallback, Goog
         }
     }
 
+
+
+
+    /*
+    Application Logic Management
+     */
+
     private LatLng getCarLocation() {
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences(Constants.PREF_PARKADO, Context.MODE_PRIVATE);
-        double carLat = Double.longBitsToDouble(sharedPreferences.getLong(Constants.PARKED_LAT, 0));
-        double carLong = Double.longBitsToDouble(sharedPreferences.getLong(Constants.PARKED_LONG, 0));
-        if (carLat == carLong && carLat == 0)
-            return null;
-        Log.d(Constants.DBG_LOC, "Car is at: " + carLat + " " + carLong);
-        return new LatLng(carLat, carLong);
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            mDatabase.child("users/" + user.getUid()).addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot snapshot) {
+                    Log.d(Constants.DBG_ALOG, snapshot.getValue().toString());
+                }
+                @Override public void onCancelled(DatabaseError error) {
+                    Snackbar snackbar = Snackbar.make(mapView, getString(R.string.car_not_found), Snackbar.LENGTH_LONG);
+                    snackbar.show();
+                }
+            });;
+        } else {
+            Toast.makeText(getActivity(), getString(R.string.error_auth), Toast.LENGTH_LONG).show();
+            Intent intent = new Intent(getContext(), LoginActivity.class);
+            startActivity(intent);
+        }
+        return new LatLng(0, 0);
     }
 }

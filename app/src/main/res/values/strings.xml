@@ -145,6 +145,9 @@
     <string name="set_car_button">Set Car</string>
     <string name="set_sms_button">Set SMS</string>
     <string name="remove_sms_button">Remove</string>
+    <string name="car_not_found">Parkado could not find any parked car</string>
+    <string name="error_cant_write">Ooops! Parkado could not save your parking location!</string>
+    <string name="error_auth">Oops! There was a problem with your uthentication. Please Sign In again.</string>
 
 
     <string-array name="car_type_array">

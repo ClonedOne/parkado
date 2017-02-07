@@ -14,7 +14,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.telephony.SmsManager;
@@ -39,9 +38,16 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.yogaub.giorgio.parkado.HomeActivity;
+import com.yogaub.giorgio.parkado.LoginActivity;
 import com.yogaub.giorgio.parkado.PermissionRequestActivity;
 import com.yogaub.giorgio.parkado.R;
+import com.yogaub.giorgio.parkado.domain.ParkedCar;
 import com.yogaub.giorgio.parkado.utilties.Constants;
 
 import java.io.IOException;
@@ -83,6 +89,9 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
     private Location[] locationArray = new Location[locationArraySize];
     private int locationCounter;
 
+    private DatabaseReference mDatabase;
+
+
 
     /*
     Lifecycle Management
@@ -94,6 +103,7 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
         // Initialization
         floatingView = LayoutInflater.from(this).inflate(R.layout.floating_view, null);
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+        mDatabase = FirebaseDatabase.getInstance().getReference();
 
         collapsedView = floatingView.findViewById(R.id.collapsed_container);
         expandedView = floatingView.findViewById(R.id.expanded_container);
@@ -337,15 +347,15 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
     @Override
     public void onConnectionSuspended(int i) {
         Log.d(Constants.DBG_LOC, "Connection suspended");
-        Snackbar snackbar = Snackbar.make(floatingView, getString(R.string.error_googleapi), Snackbar.LENGTH_LONG);
-        snackbar.show();
+        Toast toast = Toast.makeText(this, getString(R.string.error_googleapi), Toast.LENGTH_LONG);
+        toast.show();
     }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         Log.d(Constants.DBG_LOC, "Connection Failed");
-        Snackbar snackbar = Snackbar.make(floatingView, getString(R.string.error_googleapi), Snackbar.LENGTH_LONG);
-        snackbar.show();
+        Toast toast = Toast.makeText(this, getString(R.string.error_googleapi), Toast.LENGTH_LONG);
+        toast.show();
     }
 
     private void buildGoogleApiClient() {
@@ -445,6 +455,27 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
             return;
         }
         Log.d(Constants.DBG_ALOG, "Retrieved car type: " + carType);
+        ParkedCar parkedCar = new ParkedCar(carType, finalLat, finalLong, true, 0);
+        DatabaseReference.CompletionListener completionListener = new DatabaseReference.CompletionListener() {
+            @Override
+            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                if (databaseError != null){
+                    Log.d(Constants.DBG_ALOG, databaseError.getMessage());
+                }
+                else {
+                    Toast.makeText(FloatingViewService.this, getString(R.string.error_cant_write), Toast.LENGTH_LONG).show();
+                    Log.d(Constants.DBG_ALOG, "Database write without error");
+                }
+            }
+        };
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            mDatabase.child("users/" + user.getUid()).setValue(parkedCar, completionListener);
+        } else {
+            Toast.makeText(this, getString(R.string.error_auth), Toast.LENGTH_LONG).show();
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+        }
 
         try {
             List<Address> addresses = geocoder.getFromLocation(finalLat, finalLong, 1);
