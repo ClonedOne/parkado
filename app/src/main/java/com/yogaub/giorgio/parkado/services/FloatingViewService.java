@@ -49,6 +49,7 @@ import com.yogaub.giorgio.parkado.PermissionRequestActivity;
 import com.yogaub.giorgio.parkado.R;
 import com.yogaub.giorgio.parkado.domain.ParkedCar;
 import com.yogaub.giorgio.parkado.utilties.Constants;
+import com.yogaub.giorgio.parkado.utilties.Utils;
 
 import java.io.IOException;
 import java.util.List;
@@ -315,13 +316,12 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
 
     private void leaving() {
         Log.d(Constants.DBG_UI, "Clicked on leaving button");
-        SharedPreferences sharedPreferences = this.getSharedPreferences(Constants.PREF_PARKADO, MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.remove(Constants.PARKED_LAT);
-        editor.remove(Constants.PARKED_LONG);
-        editor.apply();
         Toast toast = Toast.makeText(this, getString(R.string.toast_leaving), Toast.LENGTH_LONG);
         toast.show();
+        int carType = Utils.getCurrCar(FloatingViewService.this);
+        if (carType == 0)
+            return;
+        fireDBAction(false, null, carType);
     }
 
     private void lookingFor() {
@@ -441,53 +441,49 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
     private void computeLocation() {
         double finalLat = locationArray[locationArraySize - 1].getLatitude();
         double finalLong = locationArray[locationArraySize - 1].getLongitude();
-        SharedPreferences sharedPreferences = this.getSharedPreferences(Constants.PREF_PARKADO, MODE_PRIVATE);
 
-        int carType = sharedPreferences.getInt(Constants.CAR_TYPE, 0);
-        if (carType == 0) {
-            Log.d(Constants.DBG_ALOG, "Car type not found");
-            Toast toast = Toast.makeText(this, getString(R.string.car_not_set), Toast.LENGTH_LONG);
-            toast.show();
-            Intent intent = new Intent(FloatingViewService.this, HomeActivity.class);
-            intent.putExtra("Action", Constants.fragSettings);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            startActivity(intent);
+        int carType = Utils.getCurrCar(FloatingViewService.this);
+        if (carType == 0)
             return;
-        }
-        Log.d(Constants.DBG_ALOG, "Retrieved car type: " + carType);
         ParkedCar parkedCar = new ParkedCar(carType, finalLat, finalLong, true, 0);
+
+        fireDBAction(true, parkedCar, carType);
+        sendSMS(parkedCar);
+
+    }
+
+
+
+    /*
+    FireBase Database Management
+     */
+
+    private void fireDBAction(boolean insDel, ParkedCar parkedCar, int carType) {
         DatabaseReference.CompletionListener completionListener = new DatabaseReference.CompletionListener() {
             @Override
             public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                if (databaseError != null){
+                if (databaseError != null) {
                     Log.d(Constants.DBG_ALOG, databaseError.getMessage());
-                }
-                else {
-                    Toast.makeText(FloatingViewService.this, getString(R.string.error_cant_write), Toast.LENGTH_LONG).show();
+                    Toast.makeText(FloatingViewService.this, getString(R.string.error_firebase_db), Toast.LENGTH_LONG).show();
+                } else {
                     Log.d(Constants.DBG_ALOG, "Database write without error");
                 }
             }
         };
+
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
-            mDatabase.child("users/" + user.getUid()).setValue(parkedCar, completionListener);
+            if (insDel) { // Inserting new parking
+                mDatabase.child("users/" + user.getUid() + "/" + carType).setValue(parkedCar, completionListener);
+            } else { // Deleting stored parking
+                mDatabase.child("users/" + user.getUid() + "/" + carType).removeValue();
+            }
         } else {
             Toast.makeText(this, getString(R.string.error_auth), Toast.LENGTH_LONG).show();
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
+            stopSelf();
         }
-
-        try {
-            List<Address> addresses = geocoder.getFromLocation(finalLat, finalLong, 1);
-            String carLocationDecoded = "Your car is at: " + addresses.get(0).getAddressLine(0) + ", " + addresses.get(0).getLocality();
-            Log.d(Constants.DBG_LOC, carLocationDecoded);
-            Log.d(Constants.DBG_LOC, "Final latitude and longitude: " + finalLat + " " + finalLong);
-            sendSMS(carLocationDecoded);
-        } catch (IOException e) {
-            Toast toast = Toast.makeText(this, getString(R.string.perm_location_denied), Toast.LENGTH_LONG);
-            toast.show();
-        }
-
     }
 
 
@@ -496,7 +492,17 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
     SMS related methods
      */
 
-    public void sendSMS(String carLocationDecoded) {
+    public void sendSMS(ParkedCar parkedCar) {
+        String carLocationDecoded = "";
+        try {
+            List<Address> addresses = geocoder.getFromLocation(parkedCar.getLastLat(), parkedCar.getLastLong(), 1);
+            carLocationDecoded = "Your car is at: " + addresses.get(0).getAddressLine(0) + ", " + addresses.get(0).getLocality();
+            Log.d(Constants.DBG_LOC, carLocationDecoded);
+        } catch (IOException e) {
+            Toast toast = Toast.makeText(this, getString(R.string.perm_location_denied), Toast.LENGTH_LONG);
+            toast.show();
+            return;
+        }
         Log.d(Constants.DBG_SMS, "Attempting to send SMS");
         SharedPreferences sharedPreferences = this.getSharedPreferences(Constants.PREF_PARKADO, MODE_PRIVATE);
         String number = sharedPreferences.getString(Constants.SMS_NUMBER, "");

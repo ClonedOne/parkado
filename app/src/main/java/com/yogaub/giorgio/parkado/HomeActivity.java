@@ -65,6 +65,9 @@ public class HomeActivity extends AppCompatActivity implements
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
+    private FirebaseUser user;
+
+    private boolean drawerSet;
 
 
     /*
@@ -91,13 +94,13 @@ public class HomeActivity extends AppCompatActivity implements
         mAuthStateListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = firebaseAuth.getCurrentUser();
+                user = firebaseAuth.getCurrentUser();
                 if (user != null) {
                     Log.d(Constants.DBG_AUTH, "onAuthStateChanged:signed_in:" + user.getUid());
-                    String name = user.getDisplayName();
-                    String email = user.getEmail();
-                    Uri photoUrl = user.getPhotoUrl();
-                    setDrawerElems(name, email, photoUrl);
+                    if (!drawerSet){
+                        setDrawerElems();
+                        drawerSet = true;
+                    }
                 } else {
                     Log.d(Constants.DBG_AUTH, "onAuthStateChanged:signed_out");
                     Intent out = new Intent(HomeActivity.this, LoginActivity.class);
@@ -199,14 +202,14 @@ public class HomeActivity extends AppCompatActivity implements
         Resources r = getResources();
         String[] carTypes = r.getStringArray(R.array.car_type_array);
         int i;
-        for (i = 0; i < carTypes.length; i++){
+        for (i = 0; i < carTypes.length; i++) {
             if (carTypes[i].equals(selected)) {
                 break;
             }
         }
         SharedPreferences sharedPreferences = this.getSharedPreferences(Constants.PREF_PARKADO, MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putInt(Constants.CAR_TYPE, i+1);
+        editor.putInt(Constants.CAR_TYPE, i + 1);
         editor.apply();
     }
 
@@ -311,12 +314,12 @@ public class HomeActivity extends AppCompatActivity implements
     @Override
     @TargetApi(Build.VERSION_CODES.M)
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode){
+        switch (requestCode) {
             case Constants.MODIFY_SYS_OVERLAY:
                 if (Settings.canDrawOverlays(this)) {
                     Log.d(Constants.DBG_UI, "Overlay Drawing allowed");
                     startService(new Intent(this, FloatingViewService.class));
-                }else{
+                } else {
                     Log.d(Constants.DBG_UI, "Overlay Drawing NOT allowed");
                 }
                 break;
@@ -338,7 +341,7 @@ public class HomeActivity extends AppCompatActivity implements
                     }
                     if (cursor != null)
                         cursor.close();
-                }else {
+                } else {
                     Log.d(Constants.DBG_CNTCS, "Problem in contact picking");
                 }
                 break;
@@ -413,34 +416,34 @@ public class HomeActivity extends AppCompatActivity implements
         onNavigationItemSelected(navigationView.getMenu().getItem(fragId));
     }
 
-    private void setDrawerElems(String name, String email, Uri photoUrl) {
+    private void setDrawerElems() {
+        String name = user.getDisplayName();
+        String email = user.getEmail();
+        Uri photoUrl = user.getPhotoUrl();
         Log.d(Constants.DBG_AUTH, name + " " + email + " " + photoUrl);
         TextView userName = (TextView) findViewById(R.id.userName);
         TextView userMail = (TextView) findViewById(R.id.userMail);
         CircleImageView userImage = (CircleImageView) findViewById(R.id.userImage);
-        boolean un = false;
+        boolean un;
 
         if (name != null && !name.equals("")) {
             userName.setText(name);
             un = true;
-        }
-        else
+        } else
             un = false;
         if (email != null && !email.equals("")) {
             userMail.setText(email);
-            if (!un){
+            if (!un) {
                 name = email.split("@")[0];
                 userName.setText(name);
             }
-        }
-        else {
+        } else {
             userMail.setVisibility(View.INVISIBLE);
             if (!un)
                 userName.setText(getString(R.string.parkado_user));
         }
         if (photoUrl != null)
             Glide.with(this).load(photoUrl).into(userImage);
-
     }
 
 }

@@ -29,8 +29,10 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.gson.Gson;
 import com.yogaub.giorgio.parkado.LoginActivity;
 import com.yogaub.giorgio.parkado.R;
+import com.yogaub.giorgio.parkado.domain.ParkedCar;
 import com.yogaub.giorgio.parkado.utilties.Constants;
 import com.yogaub.giorgio.parkado.utilties.Utils;
 
@@ -106,11 +108,10 @@ public class ParkedFragment extends Fragment implements OnMapReadyCallback, Goog
                 ActivityCompat.requestPermissions(getActivity(), new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, Constants.LOCATION_PERMISSION);
             }
         }
-        LatLng carLocation = getCarLocation();
-        if (carLocation != null) {
-            mMap.addMarker(new MarkerOptions().position(carLocation).title(getString(R.string.map_marker)));
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(carLocation, 16));
-        }
+        int carType = Utils.getCurrCar(getContext());
+        if (carType == 0)
+            return;
+        getCarLocation(carType);
     }
 
 
@@ -138,24 +139,41 @@ public class ParkedFragment extends Fragment implements OnMapReadyCallback, Goog
     Application Logic Management
      */
 
-    private LatLng getCarLocation() {
+    private void getCarLocation(int carType) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
-            mDatabase.child("users/" + user.getUid()).addValueEventListener(new ValueEventListener() {
+            mDatabase.child("users/" + user.getUid() + "/" + carType).addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot snapshot) {
+                    if (snapshot == null || snapshot.getValue() == null){
+                        mMap.clear();
+                        Snackbar snackbar = Snackbar.make(mapView, getString(R.string.car_not_found), Snackbar.LENGTH_LONG);
+                        snackbar.show();
+                        return;
+                    }
                     Log.d(Constants.DBG_ALOG, snapshot.getValue().toString());
+                    setCarMarker(snapshot.getValue().toString());
                 }
                 @Override public void onCancelled(DatabaseError error) {
-                    Snackbar snackbar = Snackbar.make(mapView, getString(R.string.car_not_found), Snackbar.LENGTH_LONG);
+                    mMap.clear();
+                    Snackbar snackbar = Snackbar.make(mapView, getString(R.string.error_firebase_db), Snackbar.LENGTH_LONG);
                     snackbar.show();
                 }
-            });;
+            });
         } else {
             Toast.makeText(getActivity(), getString(R.string.error_auth), Toast.LENGTH_LONG).show();
             Intent intent = new Intent(getContext(), LoginActivity.class);
             startActivity(intent);
+            getActivity().finish();
         }
-        return new LatLng(0, 0);
     }
+
+    private void setCarMarker(String parkedCarData){
+        Gson gson = new Gson();
+        ParkedCar parkedCar = gson.fromJson(parkedCarData, ParkedCar.class);
+        LatLng carLocation = new LatLng(parkedCar.getLastLat(), parkedCar.getLastLong());
+        mMap.addMarker(new MarkerOptions().position(carLocation).title(getString(R.string.map_marker)));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(carLocation, 16));
+    }
+
 }
