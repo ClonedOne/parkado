@@ -100,7 +100,7 @@ public class HomeActivity extends AppCompatActivity implements
                 user = firebaseAuth.getCurrentUser();
                 if (user != null) {
                     Log.d(Constants.DBG_AUTH, "onAuthStateChanged:signed_in:" + user.getUid());
-                    if (!drawerSet){
+                    if (!drawerSet) {
                         setDrawerElems();
                         drawerSet = true;
                     }
@@ -193,11 +193,6 @@ public class HomeActivity extends AppCompatActivity implements
             Log.d(Constants.DBG_UI, "Home intro card object is null");
     }
 
-    public void selectContact(View view) {
-        Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
-        startActivityForResult(intent, Constants.PICK_CONTACT);
-    }
-
     private void logOut() {
         FirebaseAuth.getInstance().signOut();
         Intent exit = new Intent(HomeActivity.this, LoginActivity.class);
@@ -223,11 +218,18 @@ public class HomeActivity extends AppCompatActivity implements
         editor.apply();
     }
 
+    public void selectContact(View view) {
+        Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
+        startActivityForResult(intent, Constants.PICK_CONTACT);
+    }
+
     public void removeContact(View view) {
         SharedPreferences sharedPreferences = this.getSharedPreferences(Constants.PREF_PARKADO, MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.remove(Constants.SMS_NUMBER);
         editor.apply();
+        TextView contactName = (TextView) findViewById(R.id.settings_sms_contact_name);
+        contactName.setText(getString(R.string.settings_sms_contact_text));
     }
 
 
@@ -337,22 +339,9 @@ public class HomeActivity extends AppCompatActivity implements
                 if (resultCode == Activity.RESULT_OK) {
                     Log.d(Constants.DBG_CNTCS, "Contact picked");
                     Uri contactData = data.getData();
-                    String[] projection = new String[]{ContactsContract.CommonDataKinds.Phone.NUMBER};
-                    Cursor cursor = getContentResolver().query(contactData, projection,
-                            null, null, null);
-                    if (cursor != null && cursor.moveToFirst()) {
-                        int numberIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
-                        String phoneNumber = cursor.getString(numberIndex);
-                        Log.d(Constants.DBG_CNTCS, "Number picked: " + phoneNumber);
-                        SharedPreferences sharedPreferences = this.getSharedPreferences(Constants.PREF_PARKADO, MODE_PRIVATE);
-                        SharedPreferences.Editor editor = sharedPreferences.edit();
-                        editor.putString(Constants.SMS_NUMBER, phoneNumber);
-                        editor.apply();
-                    }
-                    if (cursor != null)
-                        cursor.close();
+                    selectedContact(contactData);
                 } else {
-                    Log.d(Constants.DBG_CNTCS, "Problem in contact picking");
+                    Log.e(Constants.DBG_CNTCS, "Problem in contact picking");
                 }
                 break;
         }
@@ -452,6 +441,42 @@ public class HomeActivity extends AppCompatActivity implements
         }
         if (photoUrl != null)
             Glide.with(this).load(photoUrl).into(userImage);
+    }
+
+
+
+    /*
+    Contact Management
+     */
+
+    private void selectedContact (Uri contactData) {
+        if (contactData == null) {
+            Log.e(Constants.DBG_CNTCS, "Problem in contact picking, contactData NULL");
+            return;
+        }
+        String[] projection = new String[]{ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NUMBER};
+        Cursor cursor = getContentResolver().query(contactData, projection,
+                null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            int numberIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
+            String phoneNumber = cursor.getString(numberIndex);
+            int nameIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME);
+            String contactName = cursor.getString(nameIndex);
+            Log.d(Constants.DBG_CNTCS, "Contact picked: " + contactName + " " + phoneNumber);
+            updateContactName(contactName);
+            SharedPreferences sharedPreferences = this.getSharedPreferences(Constants.PREF_PARKADO, MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString(Constants.SMS_NAME, contactName);
+            editor.putString(Constants.SMS_NUMBER, phoneNumber);
+            editor.apply();
+        }
+        if (cursor != null)
+            cursor.close();
+    }
+
+    private void updateContactName(String contactName) {
+        TextView contactNameTV = (TextView) findViewById(R.id.settings_sms_contact_name);
+        contactNameTV.setText(contactName);
     }
 
 }

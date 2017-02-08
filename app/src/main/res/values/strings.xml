@@ -140,7 +140,7 @@
     <string name="error_google_atuh">There was a problem with the Google Sign In</string>
     <string name="car_not_set">Please set up car details in Parkado settings and retry!</string>
     <string name="sttings_options_card_title">Options</string>
-    <string name="settings_sms_card_text">Select a contact who will be notified via SMS when you park your car.</string>
+    <string name="settings_sms_card_text">Select a contact who will be notified via SMS when you park your car. Currently selected:</string>
     <string name="settings_car_type_card_text">Set the type of car you are drving.</string>
     <string name="set_car_button">Set Car</string>
     <string name="set_sms_button">Set SMS</string>
@@ -149,6 +149,7 @@
     <string name="error_firebase_db">Ooops! Parkado could not reach its cloud database!</string>
     <string name="error_auth">Oops! There was a problem with your uthentication. Please Sign In again.</string>
     <string name="parkado_user">Parkado User</string>
+    <string name="settings_sms_contact_text">No contact selected</string>
 
 
     <string-array name="car_type_array">

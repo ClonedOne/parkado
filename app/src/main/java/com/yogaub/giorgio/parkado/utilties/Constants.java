@@ -33,6 +33,7 @@ public class Constants {
     public static final String PARKED_LONG = "parked car longitude";
     public static final String CAR_TYPE = "Car Type";
     public static final String SMS_NUMBER = "SMS number";
+    public static final String SMS_NAME = "SMS contact";
 
     
     // Debug strings
