@@ -40,7 +40,6 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.yogaub.giorgio.parkado.fragments.HomeFragment;
 import com.yogaub.giorgio.parkado.fragments.LookingForFragment;
 import com.yogaub.giorgio.parkado.fragments.ParkedFragment;
 import com.yogaub.giorgio.parkado.fragments.SettingFragment;
@@ -60,6 +59,7 @@ public class HomeActivity extends AppCompatActivity implements
     private NavigationView navigationView;
     private DrawerLayout drawer;
     private View headerLayout;
+    private final String ACT_FRAG = "Active Fragment";
 
     // Permissions management
     private ArrayList<String> perms = new ArrayList<>();
@@ -165,7 +165,11 @@ public class HomeActivity extends AppCompatActivity implements
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+            Fragment myFragment = getSupportFragmentManager().findFragmentByTag(ACT_FRAG);
+            if (!(myFragment == null) && !(myFragment.getClass().equals(SettingFragment.class)))
+                onNavigationItemSelected(navigationView.getMenu().getItem(Constants.fragSettings));
+            else
+                super.onBackPressed();
         }
     }
 
@@ -372,9 +376,9 @@ public class HomeActivity extends AppCompatActivity implements
         FragmentManager fragmentManager = getSupportFragmentManager();
 
         switch (id) {
-            case R.id.nav_home:
-                Log.d(Constants.DBG_UI, "Selected home fragment");
-                fragClass = HomeFragment.class;
+            case R.id.nav_manage:
+                Log.d(Constants.DBG_UI, "Selected setting fragment");
+                fragClass = SettingFragment.class;
                 break;
             case R.id.nav_parked:
                 Log.d(Constants.DBG_UI, "Selected parked fragment");
@@ -383,10 +387,6 @@ public class HomeActivity extends AppCompatActivity implements
             case R.id.nav_free:
                 Log.d(Constants.DBG_UI, "Selected looking for fragment");
                 fragClass = LookingForFragment.class;
-                break;
-            case R.id.nav_manage:
-                Log.d(Constants.DBG_UI, "Selected setting fragment");
-                fragClass = SettingFragment.class;
                 break;
             case R.id.nav_log_out:
                 drawer.closeDrawer(GravityCompat.START);
@@ -402,9 +402,11 @@ public class HomeActivity extends AppCompatActivity implements
                 FragmentTransaction transaction = fragmentManager.beginTransaction();
                 transaction.setCustomAnimations(
                         R.anim.enter_anim,
+                        R.anim.stay_anim,
+                        R.anim.enter_anim,
                         R.anim.stay_anim
                 );
-                transaction.replace(R.id.home_activity_frame_layout, fragment);
+                transaction.replace(R.id.home_activity_frame_layout, fragment, ACT_FRAG);
                 transaction.commit();
             }
         } catch (Exception e) {
@@ -417,7 +419,7 @@ public class HomeActivity extends AppCompatActivity implements
     }
 
     private void switchFragmentOnIntent(Intent incomingIntent) {
-        int fragId = incomingIntent.getIntExtra("Action", Constants.fragHome);
+        int fragId = incomingIntent.getIntExtra("Action", Constants.fragSettings);
         Log.d(Constants.DBG_UI, "Starting main activity with fragId: " + fragId);
         onNavigationItemSelected(navigationView.getMenu().getItem(fragId));
     }

@@ -6,7 +6,7 @@
     tools:context="com.yogaub.giorgio.parkado.fragments.SettingFragment">
 
     <!-- <include layout="@layout/card_settings_intro"/> -->
-
+    <include layout="@layout/card_home_intro"/>
     <include layout="@layout/card_settings_options" />
 
 </LinearLayout>

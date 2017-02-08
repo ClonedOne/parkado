@@ -2,6 +2,8 @@ package com.yogaub.giorgio.parkado.utilties;
 
 /**
  * Created by Giorgio on yogaub.
+ *
+ * This class is a holder for application wide used constant values.
  */
 
 public class Constants {
@@ -46,9 +48,8 @@ public class Constants {
 
 
     // Fragment Identifiers
-    public static int fragHome = 0;
+    public static int fragSettings = 0;
     public static int fragParked = 1;
     public static int fragLooking = 2;
-    public static int fragSettings = 3;
 
 }
