@@ -95,6 +95,10 @@ public class ParkedFragment extends Fragment implements OnMapReadyCallback, Goog
         if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             Log.d(Constants.DBG_LOC, "Location permission is available. Shows MyLocation button.");
             mMap.setMyLocationEnabled(true);
+            int carType = Utils.getCurrCar(getContext());
+            if (carType == 0)
+                return;
+            getCarLocation(carType);
         } else {
             Log.d(Constants.DBG_LOC, "Location permission is not available. Asking for permission.");
             if (ActivityCompat.shouldShowRequestPermissionRationale(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)) {
@@ -108,10 +112,7 @@ public class ParkedFragment extends Fragment implements OnMapReadyCallback, Goog
                 ActivityCompat.requestPermissions(getActivity(), new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, Constants.LOCATION_PERMISSION);
             }
         }
-        int carType = Utils.getCurrCar(getContext());
-        if (carType == 0)
-            return;
-        getCarLocation(carType);
+
     }
 
 
@@ -125,6 +126,10 @@ public class ParkedFragment extends Fragment implements OnMapReadyCallback, Goog
         if (requestCode == Constants.LOCATION_PERMISSION) {
             if (permissions.length == 1 && Objects.equals(permissions[0], Manifest.permission.ACCESS_FINE_LOCATION) && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 mMap.setMyLocationEnabled(true);
+                int carType = Utils.getCurrCar(getContext());
+                if (carType == 0)
+                    return;
+                getCarLocation(carType);
             } else {
                 Snackbar denied_l = Snackbar.make(mapView, getString(R.string.perm_location_denied), Snackbar.LENGTH_LONG);
                 denied_l.show();

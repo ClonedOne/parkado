@@ -153,6 +153,7 @@
     <string name="settings_car_type_error">Please select a car type to continue</string>
     <string name="settings_car_type_ok">Successful car type selection!</string>
     <string name="settings_sms_contact_ok">Successful contact selection!</string>
+    <string name="map_marker_mins">minutes ago</string>
 
 
     <string-array name="car_type_array">
