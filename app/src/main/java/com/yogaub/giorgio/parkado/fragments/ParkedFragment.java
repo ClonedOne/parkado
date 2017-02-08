@@ -145,19 +145,23 @@ public class ParkedFragment extends Fragment implements OnMapReadyCallback, Goog
             mDatabase.child("users/" + user.getUid() + "/" + carType).addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot snapshot) {
-                    if (snapshot == null || snapshot.getValue() == null){
-                        mMap.clear();
-                        Snackbar snackbar = Snackbar.make(mapView, getString(R.string.car_not_found), Snackbar.LENGTH_LONG);
-                        snackbar.show();
-                        return;
+                    if (isAdded()) {
+                        if (snapshot == null || snapshot.getValue() == null) {
+                            mMap.clear();
+                            Snackbar snackbar = Snackbar.make(mapView, getString(R.string.car_not_found), Snackbar.LENGTH_LONG);
+                            snackbar.show();
+                            return;
+                        }
+                        Log.d(Constants.DBG_ALOG, snapshot.getValue().toString());
+                        setCarMarker(snapshot.getValue().toString());
                     }
-                    Log.d(Constants.DBG_ALOG, snapshot.getValue().toString());
-                    setCarMarker(snapshot.getValue().toString());
                 }
                 @Override public void onCancelled(DatabaseError error) {
-                    mMap.clear();
-                    Snackbar snackbar = Snackbar.make(mapView, getString(R.string.error_firebase_db), Snackbar.LENGTH_LONG);
-                    snackbar.show();
+                    if (isAdded()) {
+                        mMap.clear();
+                        Snackbar snackbar = Snackbar.make(mapView, getString(R.string.error_firebase_db), Snackbar.LENGTH_LONG);
+                        snackbar.show();
+                    }
                 }
             });
         } else {

@@ -91,7 +91,8 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
     private int locationCounter;
 
     private DatabaseReference mDatabase;
-
+    private enum action {NO_ACT, LEAVE_ACT, PARK_ACT}
+    private action curAct = action.NO_ACT;
 
 
     /*
@@ -303,6 +304,7 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
         mGoogleApiClient.connect();
         Toast toast = Toast.makeText(this, getString(R.string.toast_saving_park), Toast.LENGTH_LONG);
         toast.show();
+        curAct = action.PARK_ACT;
         get_location();
     }
 
@@ -322,6 +324,8 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
         if (carType == 0)
             return;
         fireDBAction(false, null, carType);
+        curAct = action.LEAVE_ACT;
+        get_location();
     }
 
     private void lookingFor() {
@@ -447,8 +451,15 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
             return;
         ParkedCar parkedCar = new ParkedCar(carType, finalLat, finalLong, true, 0);
 
-        fireDBAction(true, parkedCar, carType);
-        sendSMS(parkedCar);
+        if (curAct == action.PARK_ACT) {
+            fireDBAction(true, parkedCar, carType);
+            sendSMS(parkedCar);
+            curAct = action.NO_ACT;
+        } else if (curAct == action.LEAVE_ACT) {
+            curAct = action.NO_ACT;
+        } else {
+            Log.e(Constants.DBG_ALOG, "Unexpected action state NO_ACT");
+        }
 
     }
 
