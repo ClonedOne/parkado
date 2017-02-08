@@ -203,7 +203,7 @@ public class HomeActivity extends AppCompatActivity implements
     public void setCar(View view) {
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
         String selected = (String) spinner.getSelectedItem();
-        Log.d(Constants.DBG_UI, "Selected item: " + selected);
+        Log.d(Constants.DBG_UI, "Selected Car Type item: " + selected);
         Resources r = getResources();
         String[] carTypes = r.getStringArray(R.array.car_type_array);
         int i;
@@ -212,10 +212,18 @@ public class HomeActivity extends AppCompatActivity implements
                 break;
             }
         }
-        SharedPreferences sharedPreferences = this.getSharedPreferences(Constants.PREF_PARKADO, MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putInt(Constants.CAR_TYPE, i + 1);
-        editor.apply();
+        if (i == 0){
+            Log.d(Constants.DBG_UI, "Selected carType = 0");
+            Snackbar snackbar = Snackbar.make(fab, getString(R.string.settings_car_type_error), Snackbar.LENGTH_LONG);
+            snackbar.show();
+        }else {
+            Snackbar snackbar = Snackbar.make(fab, getString(R.string.settings_car_type_ok), Snackbar.LENGTH_LONG);
+            snackbar.show();
+            SharedPreferences sharedPreferences = this.getSharedPreferences(Constants.PREF_PARKADO, MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putInt(Constants.CAR_TYPE, i);
+            editor.apply();
+        }
     }
 
     public void selectContact(View view) {
@@ -477,6 +485,8 @@ public class HomeActivity extends AppCompatActivity implements
     private void updateContactName(String contactName) {
         TextView contactNameTV = (TextView) findViewById(R.id.settings_sms_contact_name);
         contactNameTV.setText(contactName);
+        Snackbar snackbar = Snackbar.make(fab, getString(R.string.settings_sms_contact_ok), Snackbar.LENGTH_LONG);
+        snackbar.show();
     }
 
 }

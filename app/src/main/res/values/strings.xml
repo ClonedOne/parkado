@@ -150,9 +150,13 @@
     <string name="error_auth">Oops! There was a problem with your uthentication. Please Sign In again.</string>
     <string name="parkado_user">Parkado User</string>
     <string name="settings_sms_contact_text">No contact selected</string>
+    <string name="settings_car_type_error">Please select a car type to continue</string>
+    <string name="settings_car_type_ok">Successful car type selection!</string>
+    <string name="settings_sms_contact_ok">Successful contact selection!</string>
 
 
     <string-array name="car_type_array">
+        <item> </item>
         <item>City car</item>
         <item>Sedan</item>
         <item>SUV</item>
