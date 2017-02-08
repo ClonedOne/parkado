@@ -35,8 +35,11 @@ import android.view.MenuItem;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Spinner;
+import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.yogaub.giorgio.parkado.fragments.HomeFragment;
 import com.yogaub.giorgio.parkado.fragments.LookingForFragment;
 import com.yogaub.giorgio.parkado.fragments.ParkedFragment;
@@ -46,6 +49,8 @@ import com.yogaub.giorgio.parkado.utilties.Constants;
 import com.yogaub.giorgio.parkado.utilties.Utils;
 
 import java.util.ArrayList;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class HomeActivity extends AppCompatActivity implements
         NavigationView.OnNavigationItemSelectedListener {
@@ -58,6 +63,8 @@ public class HomeActivity extends AppCompatActivity implements
     // Permissions management
     private ArrayList<String> perms = new ArrayList<>();
 
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthStateListener;
 
 
     /*
@@ -80,6 +87,27 @@ public class HomeActivity extends AppCompatActivity implements
             }
         });
 
+        mAuth = FirebaseAuth.getInstance();
+        mAuthStateListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if (user != null) {
+                    Log.d(Constants.DBG_AUTH, "onAuthStateChanged:signed_in:" + user.getUid());
+                    String name = user.getDisplayName();
+                    String email = user.getEmail();
+                    Uri photoUrl = user.getPhotoUrl();
+                    setDrawerElems(name, email, photoUrl);
+                } else {
+                    Log.d(Constants.DBG_AUTH, "onAuthStateChanged:signed_out");
+                    Intent out = new Intent(HomeActivity.this, LoginActivity.class);
+                    startActivity(out);
+                    HomeActivity.this.finish();
+                }
+
+            }
+        };
+
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
@@ -97,6 +125,19 @@ public class HomeActivity extends AppCompatActivity implements
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         switchFragmentOnIntent(intent);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mAuth.addAuthStateListener(mAuthStateListener);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mAuthStateListener != null)
+            mAuth.removeAuthStateListener(mAuthStateListener);
     }
 
 
@@ -148,6 +189,7 @@ public class HomeActivity extends AppCompatActivity implements
         FirebaseAuth.getInstance().signOut();
         Intent exit = new Intent(HomeActivity.this, LoginActivity.class);
         startActivity(exit);
+        finish();
     }
 
     public void setCar(View view) {
@@ -371,5 +413,34 @@ public class HomeActivity extends AppCompatActivity implements
         onNavigationItemSelected(navigationView.getMenu().getItem(fragId));
     }
 
+    private void setDrawerElems(String name, String email, Uri photoUrl) {
+        Log.d(Constants.DBG_AUTH, name + " " + email + " " + photoUrl);
+        TextView userName = (TextView) findViewById(R.id.userName);
+        TextView userMail = (TextView) findViewById(R.id.userMail);
+        CircleImageView userImage = (CircleImageView) findViewById(R.id.userImage);
+        boolean un = false;
+
+        if (name != null && !name.equals("")) {
+            userName.setText(name);
+            un = true;
+        }
+        else
+            un = false;
+        if (email != null && !email.equals("")) {
+            userMail.setText(email);
+            if (!un){
+                name = email.split("@")[0];
+                userName.setText(name);
+            }
+        }
+        else {
+            userMail.setVisibility(View.INVISIBLE);
+            if (!un)
+                userName.setText(getString(R.string.parkado_user));
+        }
+        if (photoUrl != null)
+            Glide.with(this).load(photoUrl).into(userImage);
+
+    }
 
 }
