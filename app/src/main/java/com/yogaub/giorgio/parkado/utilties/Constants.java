@@ -53,4 +53,8 @@ public class Constants {
     public static int fragParked = 1;
     public static int fragLooking = 2;
 
+
+    // Local development
+    public static String appServerUrl = "http://192.168.43.232:8000/service/parkings/";
+
 }

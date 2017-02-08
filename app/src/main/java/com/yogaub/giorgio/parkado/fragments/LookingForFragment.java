@@ -22,11 +22,13 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -45,10 +47,14 @@ import java.util.Date;
 import java.util.Objects;
 
 
-public class LookingForFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener {
+public class LookingForFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnMarkerClickListener {
     private GoogleMap mMap;
     private View mapView;
 
+
+    /*
+    Lifecycle Management
+     */
 
     public LookingForFragment() {
         // Required empty public constructor
@@ -70,6 +76,12 @@ public class LookingForFragment extends Fragment implements OnMapReadyCallback, 
         mapFragment.getMapAsync(this);
     }
 
+
+
+    /*
+    Google Map Management
+     */
+
     @Override
     public void onMapClick(LatLng latLng) {
 
@@ -84,6 +96,7 @@ public class LookingForFragment extends Fragment implements OnMapReadyCallback, 
     public void onMapReady(GoogleMap googleMap) {
         Log.d(Constants.DBG_LOC, "On Map Ready Callback.");
         mMap = googleMap;
+        googleMap.setOnMarkerClickListener(this);
         if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             Log.d(Constants.DBG_LOC, "Location permission is available. Shows MyLocation button.");
             mMap.setMyLocationEnabled(true);
@@ -109,6 +122,19 @@ public class LookingForFragment extends Fragment implements OnMapReadyCallback, 
     }
 
     @Override
+    public boolean onMarkerClick(Marker marker) {
+        marker.showInfoWindow();
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 16));
+        return true;
+    }
+
+
+
+    /*
+    Permissions Management
+     */
+
+    @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == Constants.LOCATION_PERMISSION) {
@@ -126,12 +152,16 @@ public class LookingForFragment extends Fragment implements OnMapReadyCallback, 
     }
 
 
+
+    /*
+    Application Logic
+     */
+
     private void getParkingSpots() {
         try {
             RequestQueue queue = Volley.newRequestQueue(getContext());
-            String url = "http://192.168.1.75:8000/service/parkings/";
 
-            JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null,
+            JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, Constants.appServerUrl, null,
                     new Response.Listener<JSONArray>() {
                         @Override
                         public void onResponse(JSONArray response) {
@@ -163,6 +193,8 @@ public class LookingForFragment extends Fragment implements OnMapReadyCallback, 
             try {
                 JSONObject obj = response.getJSONObject(i);
                 Parking parking = gson.fromJson(obj.toString(), Parking.class);
+                if (parking.getCarType() < carType)
+                    continue;
                 String createdDate = parking.getCreated().substring(0, parking.getCreated().length() - 8);
                 Log.d(Constants.DBG_ALOG, "received parking date " + createdDate);
                 Date parkDate = format.parse(createdDate);

@@ -101,7 +101,9 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
     private int locationCounter;
 
     private DatabaseReference mDatabase;
+
     private enum action {NO_ACT, LEAVE_ACT, PARK_ACT}
+
     private action curAct = action.NO_ACT;
 
 
@@ -529,12 +531,13 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
         try {
             Gson gson = new Gson();
             Parking parking = new Parking(parkedCar);
+            Log.d(Constants.DBG_ALOG, "Parked car type = " + parking.getCarType());
             JSONObject parkingJO = new JSONObject(gson.toJson(parking));
+            Log.d(Constants.DBG_ALOG, "json = " + parkingJO.toString());
 
             RequestQueue queue = Volley.newRequestQueue(this);
-            String url = "http://192.168.1.75:8000/service/parkings/";
 
-            JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, parkingJO,
+            JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, Constants.appServerUrl, parkingJO,
                     new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject response) {
@@ -547,8 +550,7 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
                 }
             });
             queue.add(request);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             Log.e(Constants.DBG_ALOG, "Error in Volley on sendLeaveRequest");
             e.printStackTrace();
         }
