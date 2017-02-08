@@ -59,6 +59,7 @@ public class HomeActivity extends AppCompatActivity implements
     private FloatingActionButton fab;
     private NavigationView navigationView;
     private DrawerLayout drawer;
+    private View headerLayout;
 
     // Permissions management
     private ArrayList<String> perms = new ArrayList<>();
@@ -91,6 +92,8 @@ public class HomeActivity extends AppCompatActivity implements
         });
 
         mAuth = FirebaseAuth.getInstance();
+        if (mAuth == null)
+            Log.d(Constants.DBG_AUTH, "mAuth == null");
         mAuthStateListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
@@ -118,6 +121,7 @@ public class HomeActivity extends AppCompatActivity implements
 
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        headerLayout = navigationView.getHeaderView(0);
         Intent intent = getIntent();
         switchFragmentOnIntent(intent);
 
@@ -142,6 +146,8 @@ public class HomeActivity extends AppCompatActivity implements
         if (mAuthStateListener != null)
             mAuth.removeAuthStateListener(mAuthStateListener);
     }
+
+
 
 
 
@@ -421,9 +427,9 @@ public class HomeActivity extends AppCompatActivity implements
         String email = user.getEmail();
         Uri photoUrl = user.getPhotoUrl();
         Log.d(Constants.DBG_AUTH, name + " " + email + " " + photoUrl);
-        TextView userName = (TextView) findViewById(R.id.userName);
-        TextView userMail = (TextView) findViewById(R.id.userMail);
-        CircleImageView userImage = (CircleImageView) findViewById(R.id.userImage);
+        TextView userName = (TextView) headerLayout.findViewById(R.id.userName);
+        TextView userMail = (TextView) headerLayout.findViewById(R.id.userMail);
+        CircleImageView userImage = (CircleImageView) headerLayout.findViewById(R.id.userImage);
         boolean un;
 
         if (name != null && !name.equals("")) {
