@@ -65,9 +65,4 @@ public class ParkedCar {
         this.carId = carId;
     }
 
-    public String toJson() {
-        Gson gson = new Gson();
-        return gson.toJson(this);
-    }
-
 }

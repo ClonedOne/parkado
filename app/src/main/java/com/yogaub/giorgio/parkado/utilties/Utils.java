@@ -15,6 +15,8 @@ import com.yogaub.giorgio.parkado.services.FloatingViewService;
 
 /**
  * Created by Giorgio on yogaub.
+ *
+ * This class contains utility methods used over all the application.
  */
 
 public class Utils {

@@ -2,6 +2,8 @@ package com.yogaub.giorgio.parkado.domain;
 
 import com.google.gson.Gson;
 
+import java.text.SimpleDateFormat;
+
 /**
  * Created by yogaub on 07/02/17.
  *
@@ -11,12 +13,14 @@ import com.google.gson.Gson;
 public class Parking {
 
     private int carType;
+    private String created;
     private double lastLat;
     private double lastLong;
     private boolean parked;
 
-    public Parking(int carType, double lastLat, double lastLong, boolean parked) {
+    public Parking(int carType, String created, double lastLat, double lastLong, boolean parked) {
         this.carType = carType;
+        this.created = created;
         this.lastLat = lastLat;
         this.lastLong = lastLong;
         this.parked = parked;
@@ -24,6 +28,7 @@ public class Parking {
 
     public Parking(ParkedCar parkedCar) {
         this.carType = parkedCar.getCarType();
+        this.created = "";
         this.lastLat = parkedCar.getLastLat();
         this.lastLong = parkedCar.getLastLong();
         this.parked = parkedCar.isParked();
@@ -61,9 +66,11 @@ public class Parking {
         this.parked = parked;
     }
 
-    public String toJson() {
-        Gson gson = new Gson();
-        return gson.toJson(this);
+    public String getCreated() {
+        return created;
     }
 
+    public void setCreated(String created) {
+        this.created = created;
+    }
 }

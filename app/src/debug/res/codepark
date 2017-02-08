@@ -142,3 +142,51 @@ public void onRequestPermissionsResult(int requestCode, @NonNull String[] permis
 
 
 
+
+
+
+
+
+
+
+    private enum action {NO_ACT, LEAVE_ACT, PARK_ACT}
+
+    private action curAct = action.NO_ACT;
+
+
+
+    /*
+    Private Server Management
+     */
+
+    private void sendLeaveRequest(ParkedCar parkedCar) {
+        try {
+            Gson gson = new Gson();
+            Parking parking = new Parking(parkedCar);
+            JSONObject parkingJO = new JSONObject(gson.toJson(parking));
+
+            RequestQueue queue = Volley.newRequestQueue(this);
+            String url = "http://192.168.1.75:8000/service/parkings/";
+
+            JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, parkingJO,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            Log.d(Constants.DBG_ALOG, "Response is: " + response.toString());
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.e(Constants.DBG_ALOG, "Volley connection on sendLeaveRequest failed");
+                }
+            });
+            queue.add(request);
+        }
+        catch (Exception e) {
+            Log.e(Constants.DBG_ALOG, "Error in Volley on sendLeaveRequest");
+            e.printStackTrace();
+        }
+    }
+
+
+

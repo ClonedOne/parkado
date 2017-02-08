@@ -27,6 +27,12 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -43,13 +49,17 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.gson.Gson;
 import com.yogaub.giorgio.parkado.HomeActivity;
 import com.yogaub.giorgio.parkado.LoginActivity;
 import com.yogaub.giorgio.parkado.PermissionRequestActivity;
 import com.yogaub.giorgio.parkado.R;
 import com.yogaub.giorgio.parkado.domain.ParkedCar;
+import com.yogaub.giorgio.parkado.domain.Parking;
 import com.yogaub.giorgio.parkado.utilties.Constants;
 import com.yogaub.giorgio.parkado.utilties.Utils;
+
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.List;
@@ -318,6 +328,10 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
 
     private void leaving() {
         Log.d(Constants.DBG_UI, "Clicked on leaving button");
+        if (mGoogleApiClient == null) {
+            buildGoogleApiClient();
+        }
+        mGoogleApiClient.connect();
         Toast toast = Toast.makeText(this, getString(R.string.toast_leaving), Toast.LENGTH_LONG);
         toast.show();
         int carType = Utils.getCurrCar(FloatingViewService.this);
@@ -340,7 +354,7 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
 
 
     /*
-    Location related methods
+    Google API Client Management
      */
 
     @Override
@@ -371,6 +385,12 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
                 .addApi(LocationServices.API)
                 .build();
     }
+
+
+
+    /*
+    Location Management
+     */
 
     private void get_location() {
         Log.d(Constants.DBG_LOC, "Attempting to get location");
@@ -449,13 +469,15 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
         int carType = Utils.getCurrCar(FloatingViewService.this);
         if (carType == 0)
             return;
-        ParkedCar parkedCar = new ParkedCar(carType, finalLat, finalLong, true, 0);
 
         if (curAct == action.PARK_ACT) {
+            ParkedCar parkedCar = new ParkedCar(carType, finalLat, finalLong, true, 0);
             fireDBAction(true, parkedCar, carType);
             sendSMS(parkedCar);
             curAct = action.NO_ACT;
         } else if (curAct == action.LEAVE_ACT) {
+            ParkedCar parkedCar = new ParkedCar(carType, finalLat, finalLong, false, 0);
+            sendLeaveRequest(parkedCar);
             curAct = action.NO_ACT;
         } else {
             Log.e(Constants.DBG_ALOG, "Unexpected action state NO_ACT");
@@ -494,6 +516,41 @@ public class FloatingViewService extends Service implements GoogleApiClient.Conn
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
             stopSelf();
+        }
+    }
+
+
+
+    /*
+    Private Server Management
+     */
+
+    private void sendLeaveRequest(ParkedCar parkedCar) {
+        try {
+            Gson gson = new Gson();
+            Parking parking = new Parking(parkedCar);
+            JSONObject parkingJO = new JSONObject(gson.toJson(parking));
+
+            RequestQueue queue = Volley.newRequestQueue(this);
+            String url = "http://192.168.1.75:8000/service/parkings/";
+
+            JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, parkingJO,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            Log.d(Constants.DBG_ALOG, "Response is: " + response.toString());
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.e(Constants.DBG_ALOG, "Volley connection on sendLeaveRequest failed");
+                }
+            });
+            queue.add(request);
+        }
+        catch (Exception e) {
+            Log.e(Constants.DBG_ALOG, "Error in Volley on sendLeaveRequest");
+            e.printStackTrace();
         }
     }
 
