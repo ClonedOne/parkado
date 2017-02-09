@@ -189,6 +189,8 @@ public class LookingForFragment extends Fragment implements OnMapReadyCallback, 
         Date dateNow = new Date();
         if (carType == 0)
             return;
+        long minDelta = Long.MAX_VALUE;
+        Parking minPark = null;
         for (int i = 0; i < response.length(); i++) {
             try {
                 JSONObject obj = response.getJSONObject(i);
@@ -202,11 +204,19 @@ public class LookingForFragment extends Fragment implements OnMapReadyCallback, 
                 long diffMins = (difference / (1000 * 60)) - 60;
                 if (diffMins <= 10) {
                     setMarker(parking, diffMins);
+                    if (diffMins < minDelta) {
+                        minDelta = diffMins;
+                        minPark = parking;
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
                 Log.e(Constants.DBG_ALOG, "Error in handling of received JSON in populateMap");
             }
+        }
+        if (minPark != null){
+            LatLng parkPos = new LatLng(minPark.getLastLat(), minPark.getLastLong());
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(parkPos, 16));
         }
     }
 
